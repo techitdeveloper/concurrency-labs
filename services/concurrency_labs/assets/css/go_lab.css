@@ -1,0 +1,536 @@
+/* assets/css/go_lab.css */
+
+/* -----------------------------------------------------------------------
+   Design system tokens
+----------------------------------------------------------------------- */
+:root {
+  --cyan:      #00d2ff;
+  --cyan-dim:  #00b4d8;
+  --cyan-glow: rgba(0, 210, 255, 0.15);
+  --bg:        #080810;
+  --surface:   #0f0f1a;
+  --surface-2: #16162a;
+  --border:    rgba(255, 255, 255, 0.08);
+  --text:      #d4d4e8;
+  --text-dim:  #6b6b8a;
+  --mono:      "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  --sans:      "DM Sans", system-ui, sans-serif;
+  --radius:    6px;
+}
+
+/* -----------------------------------------------------------------------
+   Page shell
+----------------------------------------------------------------------- */
+.go-lab {
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--sans);
+  padding: 0 0 4rem;
+}
+
+/* -----------------------------------------------------------------------
+   Header
+----------------------------------------------------------------------- */
+.lab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 2.5rem 3rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.lab-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+  background: var(--cyan-glow);
+  border: 1px solid rgba(0, 210, 255, 0.3);
+  border-radius: 3px;
+  padding: 0.2em 0.6em;
+  margin-bottom: 0.75rem;
+}
+
+.lab-title {
+  font-family: var(--mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.lab-subtitle {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  max-width: 520px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* -----------------------------------------------------------------------
+   Live status pill
+----------------------------------------------------------------------- */
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  border: 1px solid;
+  margin-top: 0.25rem;
+}
+
+.status-pill--live {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.status-pill--offline {
+  color: var(--text-dim);
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.status-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-pill--live .status-pip {
+  animation: pip-pulse 2s ease-in-out infinite;
+}
+
+@keyframes pip-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* -----------------------------------------------------------------------
+   Split layout
+----------------------------------------------------------------------- */
+.lab-body {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  gap: 2rem;
+  padding: 2rem 3rem;
+  align-items: start;
+  min-width: 0;
+}
+
+@media (max-width: 1280px) {
+  .lab-body { grid-template-columns: 1fr 400px; }
+}
+
+@media (max-width: 1024px) {
+  .lab-body {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+  }
+}
+
+/* -----------------------------------------------------------------------
+   Panel shared styles
+----------------------------------------------------------------------- */
+.sim-panel,
+.metrics-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.panel-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+.panel-label--dim {
+  color: var(--text-dim);
+}
+
+.dot-counter {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* -----------------------------------------------------------------------
+   Simulation canvas
+   The wrapper uses aspect-ratio to stay proportional as the panel resizes.
+   The canvas pixel dimensions are set in JS to match Go's 1000×750 constants.
+----------------------------------------------------------------------- */
+.canvas-wrapper {
+  position: relative;
+  display: block;
+  background: #0a0a0f;
+  line-height: 0;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+}
+
+.canvas-wrapper canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 8, 16, 0.85);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  backdrop-filter: blur(2px);
+}
+
+/* -----------------------------------------------------------------------
+   Controls
+----------------------------------------------------------------------- */
+.sim-controls {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.btn {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.6em 1.4em;
+  border-radius: var(--radius);
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn--primary {
+  background: var(--cyan);
+  color: #080810;
+  border-color: var(--cyan);
+}
+
+.btn--primary:hover {
+  background: #7df9ff;
+  border-color: #7df9ff;
+  box-shadow: 0 0 16px rgba(0, 210, 255, 0.4);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+
+.btn--ghost:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* -----------------------------------------------------------------------
+   Metrics panel — stat cards
+----------------------------------------------------------------------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.1rem 1.5rem;
+  background: var(--surface);
+}
+
+.stat-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-family: var(--mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: -0.02em;
+}
+
+/* -----------------------------------------------------------------------
+   Memory chart
+----------------------------------------------------------------------- */
+.chart-container {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.chart-title {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.chart-unit {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.1em 0.5em;
+}
+
+#memory-chart {
+  display: block;
+  height: 220px !important;
+  width: 100% !important;
+}
+
+/* -----------------------------------------------------------------------
+   Metrics footer rows (dot count + GC cycles)
+----------------------------------------------------------------------- */
+.metrics-footer {
+  border-bottom: 1px solid var(--border);
+}
+
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.footer-row:last-child {
+  border-bottom: none;
+}
+
+.footer-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.footer-value {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* -----------------------------------------------------------------------
+   Disclaimer
+----------------------------------------------------------------------- */
+.metrics-disclaimer {
+  font-family: var(--mono);
+  font-size: 0.63rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  padding: 0.85rem 1.5rem;
+  margin: 0;
+}
+
+.metrics-disclaimer strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* =========================================================================
+   EXPLANATION SECTION
+   Append this to the bottom of assets/css/go_lab.css
+   ========================================================================= */
+
+/* -----------------------------------------------------------------------
+   Section shell
+----------------------------------------------------------------------- */
+.explainer {
+  margin-top: 3rem;
+  border-top: 1px solid var(--border);
+}
+
+.explainer__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem;
+}
+
+/* -----------------------------------------------------------------------
+   Header
+----------------------------------------------------------------------- */
+.explainer__header {
+  margin-bottom: 2.5rem;
+  max-width: 640px;
+}
+
+.explainer__eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  margin-bottom: 0.75rem;
+}
+
+.explainer__title {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.85rem;
+  letter-spacing: -0.02em;
+}
+
+.explainer__lead {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* -----------------------------------------------------------------------
+   Card grid — 4 columns on wide, 2 on mid, 1 on narrow
+----------------------------------------------------------------------- */
+.explainer__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1280px) {
+  .explainer__grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .explainer__grid { grid-template-columns: 1fr; }
+}
+
+/* -----------------------------------------------------------------------
+   Individual card
+----------------------------------------------------------------------- */
+.explainer__card {
+  background: var(--surface);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: background 0.15s ease;
+}
+
+.explainer__card:hover {
+  background: var(--surface-2);
+}
+
+.card__index {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+  opacity: 0.6;
+}
+
+.card__title {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.card__body {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin: 0;
+  flex: 1;
+}
+
+.card__body code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--cyan);
+  background: rgba(0, 210, 255, 0.08);
+  border: 1px solid rgba(0, 210, 255, 0.15);
+  border-radius: 3px;
+  padding: 0.05em 0.35em;
+}
+
+/* -----------------------------------------------------------------------
+   Footer — tech stack tags
+----------------------------------------------------------------------- */
+.explainer__footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.explainer__stack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stack-item {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.stack-sep {
+  color: var(--border);
+  font-size: 0.8rem;
+}

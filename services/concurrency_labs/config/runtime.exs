@@ -65,6 +65,9 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  config :concurrency_labs, :go_ws_url,
+    System.get_env("GO_WS_URL") || "ws://localhost:4001/ws"
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

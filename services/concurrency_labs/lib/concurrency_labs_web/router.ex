@@ -18,6 +18,8 @@ defmodule ConcurrencyLabsWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/go-concurrency", GoLabLive, :index
   end
 
   # Other scopes may use custom stacks.
