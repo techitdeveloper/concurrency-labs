@@ -2,5 +2,6 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "./go_lab.css";
+@import "./elixir_lab.css";
 
 /* This file is for your main application CSS */

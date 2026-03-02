@@ -22,6 +22,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import { GoSimulation, MemoryChart } from "./hooks/go_lab";
+import { ElixirSimulation, ElixirMemoryChart } from "./hooks/elixir_lab";
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
@@ -30,6 +31,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
   hooks: {
     GoSimulation,
     MemoryChart,
+    ElixirSimulation,
+    ElixirMemoryChart, 
   },
 });
 

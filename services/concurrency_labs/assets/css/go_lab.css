@@ -297,13 +297,20 @@
 .chart-container {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  /* Critical: explicit height so the canvas has a stable parent to fill */
+  height: 260px;
+  /* Prevent flex/grid from stretching it */
+  flex-shrink: 0;
+  overflow: hidden;
 }
+
 
 .chart-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .chart-title {
@@ -323,10 +330,11 @@
   padding: 0.1em 0.5em;
 }
 
-#memory-chart {
+#memory-chart,
+#elixir-memory-chart {
   display: block;
-  height: 220px !important;
   width: 100% !important;
+  height: 200px !important;  /* container 260px - header ~40px - padding 20px */
 }
 
 /* -----------------------------------------------------------------------

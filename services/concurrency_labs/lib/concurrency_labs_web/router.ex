@@ -20,6 +20,7 @@ defmodule ConcurrencyLabsWeb.Router do
     get "/", PageController, :home
 
     live "/go-concurrency", GoLabLive, :index
+    live "/elixir-concurrency", ElixirLabLive, :index
   end
 
   # Other scopes may use custom stacks.
