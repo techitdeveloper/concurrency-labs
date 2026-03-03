@@ -88,6 +88,11 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
     |> push_event("reset_particles", %{})}
   end
 
+  def handle_info(:delayed_reset, socket) do
+    SessionSimManager.reset(socket.assigns.session_id)
+    {:noreply, socket}
+  end
+
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   # --- User events ----------------------------------------------------------
@@ -151,6 +156,7 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
   def handle_event("reset", _params, socket) do
     sid = socket.assigns.session_id
     SessionSimManager.reset(sid)
+    Process.send_after(self(), :delayed_reset, 300)
     {:noreply, assign(socket, :last_event, {:info, "Resetting…"})}
   end
 
