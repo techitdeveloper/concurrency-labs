@@ -1,21 +1,37 @@
 defmodule ConcurrencyLabs.ElixirSim.MetricsCollector do
+  @moduledoc """
+  Per-session metrics sampler. Started as part of the Session subtree.
+  Subscribes to the session-scoped PubSub topic to count restarts.
+  Broadcasts metrics back on the same scoped topic so only this
+  session's LiveView receives them.
+  """
+
   use GenServer
 
   alias Phoenix.PubSub
-  alias ConcurrencyLabs.ElixirSim.ElixirSimSupervisor
+  alias ConcurrencyLabs.ElixirSim.{Session, SessionSimSupervisor}
 
   @pubsub ConcurrencyLabs.PubSub
-  @topic "elixir_sim"
   @interval_ms 1_000
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  def start_link(opts) do
+    session_id = Keyword.fetch!(opts, :session_id)
+    GenServer.start_link(__MODULE__, opts, name: via(session_id))
+  end
+
+  def via(session_id) do
+    {:via, Registry,
+     {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs,
+      {:metrics, session_id}}}
   end
 
   @impl true
-  def init(_opts) do
+  def init(opts) do
+    session_id = Keyword.fetch!(opts, :session_id)
+    topic = Session.pubsub_topic(session_id)
+    PubSub.subscribe(@pubsub, topic)
     schedule()
-    {:ok, %{total_restarts: 0}}
+    {:ok, %{session_id: session_id, total_restarts: 0}}
   end
 
   @impl true
@@ -24,26 +40,25 @@ defmodule ConcurrencyLabs.ElixirSim.MetricsCollector do
   end
 
   def handle_info(:collect, state) do
-    sample = collect(state.total_restarts)
-    PubSub.broadcast(@pubsub, @topic, {:metrics, sample})
+    sample = collect(state.session_id, state.total_restarts)
+    topic = Session.pubsub_topic(state.session_id)
+    PubSub.broadcast(@pubsub, topic, {:metrics, sample})
     schedule()
     {:noreply, state}
   end
 
   def handle_info(_msg, state), do: {:noreply, state}
 
-  defp schedule do
-    Process.send_after(self(), :collect, @interval_ms)
-  end
+  defp schedule, do: Process.send_after(self(), :collect, @interval_ms)
 
-  defp collect(total_restarts) do
-    ids = ElixirSimSupervisor.process_ids()
+  defp collect(session_id, total_restarts) do
+    ids = SessionSimSupervisor.process_ids(session_id)
     process_count = length(ids)
+    registry = Session.registry_name(session_id)
 
     memories =
-      ids
-      |> Enum.map(fn id ->
-        case Registry.lookup(ConcurrencyLabs.ElixirSim.Registry, id) do
+      Enum.map(ids, fn id ->
+        case Registry.lookup(registry, id) do
           [{pid, _}] ->
             case Process.info(pid, :memory) do
               {:memory, bytes} -> bytes

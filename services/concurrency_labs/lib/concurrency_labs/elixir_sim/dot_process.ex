@@ -1,18 +1,15 @@
 defmodule ConcurrencyLabs.ElixirSim.DotProcess do
   @moduledoc """
-  Each process moves itself and reports position to SimManager.
-  SimManager batches all positions into one PubSub message per flush interval.
-  Storm deaths notify SimManager.process_died/2 — not the supervisor.
+  Per-session BEAM process. Scoped by session_id so processes from different
+  tabs never collide in the registry or in PubSub.
   """
 
   use GenServer
 
-  alias ConcurrencyLabs.ElixirSim.SimManager
+  alias ConcurrencyLabs.ElixirSim.{Session, SessionSimManager}
   alias Phoenix.PubSub
 
   @pubsub ConcurrencyLabs.PubSub
-  @topic "elixir_sim"
-
   @canvas_w 1000.0
   @canvas_h 600.0
   @dot_radius 6.0
@@ -22,24 +19,30 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   def start_link(opts) do
     id = Keyword.fetch!(opts, :id)
-    GenServer.start_link(__MODULE__, opts, name: via(id))
+    session_id = Keyword.fetch!(opts, :session_id)
+    GenServer.start_link(__MODULE__, opts, name: via(session_id, id))
   end
 
-  def kill(id) do
-    case GenServer.whereis(via(id)) do
+  def kill(session_id, id) do
+    case GenServer.whereis(via(session_id, id)) do
       nil -> :not_found
       pid ->
-        PubSub.broadcast(@pubsub, @topic, {:process_dying, id})
+        topic = Session.pubsub_topic(session_id)
+        PubSub.broadcast(@pubsub, topic, {:process_dying, id})
         GenServer.cast(pid, :die)
         :ok
     end
   end
 
-  def via(id), do: {:via, Registry, {ConcurrencyLabs.ElixirSim.Registry, id}}
+  def via(session_id, id) do
+    registry = Session.registry_name(session_id)
+    {:via, Registry, {registry, id}}
+  end
 
   @impl true
   def init(opts) do
     id = Keyword.fetch!(opts, :id)
+    session_id = Keyword.fetch!(opts, :session_id)
     restarted = Keyword.get(opts, :restarted, false)
     storm_mode = Keyword.get(opts, :storm_mode, false)
 
@@ -48,6 +51,7 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
     state = %{
       id: id,
+      session_id: session_id,
       x: @dot_radius + :rand.uniform_real() * (@canvas_w - 2 * @dot_radius),
       y: @dot_radius + :rand.uniform_real() * (@canvas_h - 2 * @dot_radius),
       vx: :math.cos(angle) * speed,
@@ -77,7 +81,8 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   @impl true
   def handle_info(:begin, state) do
-    PubSub.broadcast(@pubsub, @topic, {:process_restarted, state.id})
+    topic = Session.pubsub_topic(state.session_id)
+    PubSub.broadcast(@pubsub, topic, {:process_restarted, state.id})
     schedule_tick()
     {:noreply, %{state | active: true}}
   end
@@ -90,10 +95,11 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
     state = move(state)
     state = %{state | memory_bytes: current_memory()}
 
-    SimManager.report_position(state.id, state.x, state.y)
+    SessionSimManager.report_position(state.session_id, state.id, state.x, state.y)
 
     if state.storm_mode and :rand.uniform_real() < @storm_death_chance do
-      PubSub.broadcast(@pubsub, @topic, {:process_dying, state.id})
+      topic = Session.pubsub_topic(state.session_id)
+      PubSub.broadcast(@pubsub, topic, {:process_dying, state.id})
       {:stop, :normal, state}
     else
       schedule_tick()
@@ -104,8 +110,8 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
   def handle_info(_msg, state), do: {:noreply, state}
 
   @impl true
-  def terminate(:normal, %{storm_mode: true, id: id}) do
-    SimManager.process_died(id, :storm)
+  def terminate(:normal, %{storm_mode: true, id: id, session_id: session_id}) do
+    SessionSimManager.process_died(session_id, id, :storm)
     :ok
   end
 

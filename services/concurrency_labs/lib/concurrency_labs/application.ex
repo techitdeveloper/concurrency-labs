@@ -12,16 +12,21 @@ defmodule ConcurrencyLabs.Application do
       ConcurrencyLabs.Repo,
       {DNSCluster, query: Application.get_env(:concurrency_labs, :dns_cluster_query) || :ignore},
 
-      # Elixir simulation registry — must start before the supervisor
-      {Registry, keys: :unique, name: ConcurrencyLabs.ElixirSim.Registry},
+      # Global registry for session supervisors and their named children.
+      # Uses composite keys like {:session, id}, {:sim_sup, id}, {:sim_mgr, id}
+      {Registry,
+      keys: :unique,
+      name: ConcurrencyLabs.ElixirSim.SessionRegistry_Procs},
 
-      # Simulation supervisor — manages all DotProcess GenServers
-      ConcurrencyLabs.ElixirSim.ElixirSimSupervisor,
+      # Named DynamicSupervisor for session subtrees
+      Supervisor.child_spec(
+        {DynamicSupervisor, strategy: :one_for_one, name: ConcurrencyLabs.ElixirSim.SessionDynSup},
+        id: :session_dyn_sup
+      ),
 
-      ConcurrencyLabs.ElixirSim.SimManager,
+      # Manages session subtree start/stop
+      ConcurrencyLabs.ElixirSim.SessionRegistry,
 
-      # Metrics collector — samples :erlang.process_info every 1s
-      ConcurrencyLabs.ElixirSim.MetricsCollector,
 
       {Phoenix.PubSub, name: ConcurrencyLabs.PubSub},
       # Start the Finch HTTP client for sending emails
@@ -37,8 +42,6 @@ defmodule ConcurrencyLabs.Application do
     opts = [strategy: :one_for_one, name: ConcurrencyLabs.Supervisor]
     case Supervisor.start_link(children, opts) do
       {:ok, pid} ->
-        # Seed initial processes after the supervisor tree is running
-        ConcurrencyLabs.ElixirSim.ElixirSimSupervisor.seed()
         {:ok, pid}
 
       error ->

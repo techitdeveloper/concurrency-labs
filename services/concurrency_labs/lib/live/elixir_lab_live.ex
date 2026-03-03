@@ -2,20 +2,32 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
   use ConcurrencyLabsWeb, :live_view
 
   alias Phoenix.PubSub
-  alias ConcurrencyLabs.ElixirSim.{DotProcess, ElixirSimSupervisor, SimManager}
+  alias ConcurrencyLabs.ElixirSim.{
+    DotProcess,
+    Session,
+    SessionRegistry,
+    SessionSimSupervisor,
+    SessionSimManager
+  }
 
   @pubsub ConcurrencyLabs.PubSub
-  @topic "elixir_sim"
 
   @impl true
   def mount(_params, _session, socket) do
+    session_id = socket.id
+
     if connected?(socket) do
-      PubSub.subscribe(@pubsub, @topic)
+      # Start this tab's private simulation subtree
+      SessionRegistry.start_session(session_id)
+
+      # Subscribe to this session's scoped PubSub topic
+      PubSub.subscribe(@pubsub, Session.pubsub_topic(session_id))
     end
 
     socket =
       socket
-      |> assign(:process_count, ElixirSimSupervisor.process_count())
+      |> assign(:session_id, session_id)
+      |> assign(:process_count, 0)
       |> assign(:total_sim_memory_kb, 0)
       |> assign(:avg_memory_bytes, 0)
       |> assign(:beam_total_kb, 0)
@@ -27,12 +39,17 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
     {:ok, socket, layout: false}
   end
 
+  @impl true
+  def terminate(_reason, socket) do
+    # Stop and GC the entire session subtree when the tab closes
+    SessionRegistry.stop_session(socket.assigns.session_id)
+    :ok
+  end
+
   # --- PubSub handlers ------------------------------------------------------
 
   @impl true
-  # Batched positions from SimManager — one message per flush interval
   def handle_info({:positions_batch, positions}, socket) do
-    # Forward entire batch to JS hook as one push_event
     {:noreply, push_event(socket, "positions_batch", %{positions: positions})}
   end
 
@@ -62,14 +79,23 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
      |> push_event("metrics_update", sample)}
   end
 
-  # Catch-all — never crash on unknown PubSub messages
+  def handle_info(:reset_complete, socket) do
+    {:noreply,
+    socket
+    |> assign(:storm_mode, false)
+    |> assign(:total_restarts, 0)
+    |> assign(:last_event, {:info, "Reset to 10 processes"})
+    |> push_event("reset_particles", %{})}
+  end
+
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   # --- User events ----------------------------------------------------------
 
   @impl true
   def handle_event("spawn_process", _params, socket) do
-    case ElixirSimSupervisor.spawn_one() do
+    sid = socket.assigns.session_id
+    case SessionSimSupervisor.spawn_one(sid) do
       :max_reached ->
         {:noreply, assign(socket, :last_event, {:warn, "Max 500 processes reached"})}
       id ->
@@ -78,30 +104,32 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
   end
 
   def handle_event("kill_random", _params, socket) do
-    ids = ElixirSimSupervisor.process_ids()
+    sid = socket.assigns.session_id
+    ids = SessionSimSupervisor.process_ids(sid)
     case ids do
       [] ->
         {:noreply, assign(socket, :last_event, {:warn, "No processes to kill"})}
       _ ->
         id = Enum.random(ids)
-        DotProcess.kill(id)
-        SimManager.schedule_respawn(id, 1_200)
-        {:noreply, assign(socket, :last_event, {:kill, "Killed ##{id} — supervisor restarting it"})}
+        DotProcess.kill(sid, id)
+        SessionSimManager.schedule_respawn(sid, id, 1_200)
+        {:noreply, assign(socket, :last_event, {:kill, "Killed ##{id} — supervisor restarting"})}
     end
   end
 
   def handle_event("mass_kill", _params, socket) do
-    count = ElixirSimSupervisor.mass_kill()
+    sid = socket.assigns.session_id
+    count = SessionSimSupervisor.mass_kill(sid)
     {:noreply, assign(socket, :last_event, {:kill, "Killed #{count} processes — watching supervisor rebuild…"})}
   end
 
   def handle_event("toggle_storm", _params, socket) do
+    sid = socket.assigns.session_id
     new_state = !socket.assigns.storm_mode
-    SimManager.set_storm(new_state)
+    SessionSimManager.set_storm(sid, new_state)
 
-    # Also notify all running processes
-    for id <- ElixirSimSupervisor.process_ids() do
-      case GenServer.whereis(DotProcess.via(id)) do
+    for id <- SessionSimSupervisor.process_ids(sid) do
+      case GenServer.whereis(DotProcess.via(sid, id)) do
         nil -> :ok
         pid -> GenServer.cast(pid, {:set_storm, new_state})
       end
@@ -115,18 +143,15 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
   end
 
   def handle_event("stress_test", _params, socket) do
-    count = ElixirSimSupervisor.stress_test()
+    sid = socket.assigns.session_id
+    count = SessionSimSupervisor.stress_test(sid)
     {:noreply, assign(socket, :last_event, {:spawn, "Spawning #{count} processes — watch Avg/process stay flat"})}
   end
 
   def handle_event("reset", _params, socket) do
-    ElixirSimSupervisor.reset()
-    {:noreply,
-     socket
-     |> assign(:storm_mode, false)
-     |> assign(:total_restarts, 0)
-     |> assign(:last_event, {:info, "Reset to 10 processes"})
-     |> push_event("reset_particles", %{})}
+    sid = socket.assigns.session_id
+    SessionSimManager.reset(sid)
+    {:noreply, assign(socket, :last_event, {:info, "Resetting…"})}
   end
 
   # --- Render ---------------------------------------------------------------
@@ -141,13 +166,13 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
           <h1 class="lab-title">GenServer Simulation</h1>
           <p class="lab-subtitle">
             Each particle is a supervised GenServer. Kill them in bulk —
-            the supervisor heals the system automatically.
+            the supervisor heals the system automatically. Your session is private.
           </p>
         </div>
         <div class="lab-header__right">
           <div class="status-pill status-pill--live">
             <span class="status-pip"></span>
-            LIVE
+            LIVE · private session
           </div>
         </div>
       </header>
@@ -240,6 +265,7 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
           <p class="metrics-disclaimer">
             <strong>Avg / Process</strong> via <code>:erlang.process_info(pid, :memory)</code>.
             Run the stress test — watch avg stay flat at ~2–3 KB while count hits 500.
+            Your session is private: other visitors have their own independent simulation.
           </p>
         </section>
       </div>
@@ -258,8 +284,8 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
           <h2 class="explainer__title">How this works</h2>
           <p class="explainer__lead">
             Each particle is a real OTP GenServer supervised under a DynamicSupervisor.
-            Kill them in bulk — the supervisor heals the system automatically.
-            This is not a demo of animation; it's a demo of fault tolerance.
+            Your session is private — opening this page in another tab gives a completely
+            independent simulation. Close the tab and every process is stopped and GC'd.
           </p>
         </header>
 
@@ -279,58 +305,57 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
             <p class="card__body">
               Killing 50% shows <code>:one_for_one</code> supervision in action:
               only dead processes restart — others keep running untouched.
-              The supervisor schedules restarts explicitly with a visual delay
-              so you can watch the system rebuild particle by particle.
+              Each restart is explicit and delayed so you can watch the system
+              rebuild particle by particle.
             </p>
           </article>
           <article class="explainer__card">
             <div class="card__index">03</div>
             <h3 class="card__title">Kill Storm</h3>
             <p class="card__body">
-              Each process has a small random chance of clean self-termination
-              per tick. The <code>SimManager</code> schedules respawns after a
-              short delay. The system never goes down — it heals continuously,
-              mirroring production OTP systems that run for years.
+              Each process randomly self-terminates with a tiny probability per tick.
+              The supervisor constantly respawns them. The system never goes down —
+              it heals continuously, mirroring production OTP systems that run for years.
             </p>
           </article>
           <article class="explainer__card">
             <div class="card__index">04</div>
             <h3 class="card__title">Stress Test</h3>
             <p class="card__body">
-              500 processes, ~2–3 KB each. Watch <strong>Avg / Process</strong>
-              on the chart stay flat as the count climbs. Total memory grows
-              linearly; per-process cost stays constant. That's the BEAM story.
+              500 processes, ~2–3 KB each. Watch <strong>Avg / Process</strong> on
+              the chart stay flat as count climbs. Total memory grows linearly;
+              per-process cost stays constant. That's the BEAM story.
             </p>
           </article>
           <article class="explainer__card">
             <div class="card__index">05</div>
-            <h3 class="card__title">Batched Broadcasting</h3>
+            <h3 class="card__title">Per-Session Isolation</h3>
             <p class="card__body">
-              500 processes ticking at 30fps would flood LiveView with 15,000
-              PubSub messages/sec. Instead, all positions go to <code>SimManager</code>
-              which flushes one batched message every 50ms — 20 messages/sec
-              regardless of process count. Memory stays flat.
+              Each browser tab gets its own supervised subtree — a private
+              <code>Registry</code>, <code>DynamicSupervisor</code>,
+              <code>SimManager</code>, and <code>MetricsCollector</code>.
+              Closing the tab stops the entire subtree. Two visitors never
+              interfere with each other.
             </p>
           </article>
           <article class="explainer__card">
             <div class="card__index">06</div>
-            <h3 class="card__title">Per-Process Memory</h3>
+            <h3 class="card__title">Batched Broadcasting</h3>
             <p class="card__body">
-              Each BEAM process has its own private heap and garbage collector.
-              <code>:erlang.process_info(pid, :memory)</code> returns exact bytes —
-              stack, heap, mailbox. One process's GC never pauses the world.
-              This is impossible to replicate in Go's shared-heap model.
+              500 processes at 30fps would be 15,000 PubSub messages/sec.
+              Instead, all positions go to <code>SimManager</code> which flushes
+              one batched message every 50ms — 20 msgs/sec regardless of count.
+              This keeps LiveView memory flat even during stress tests.
             </p>
           </article>
           <article class="explainer__card">
             <div class="card__index">07</div>
-            <h3 class="card__title">:temporary Restart</h3>
+            <h3 class="card__title">Per-Process Memory</h3>
             <p class="card__body">
-              All children use <code>restart: :temporary</code> — OTP never
-              auto-restarts them. Every restart is explicit and goes through
-              <code>SimManager</code>. This bypasses OTP's restart intensity
-              counter entirely, so mass kills never trip the supervisor's
-              circuit breaker.
+              Each BEAM process has its own heap and GC. One busy process never
+              pauses the world. <code>:erlang.process_info(pid, :memory)</code>
+              returns exact bytes per process — something Go's shared heap
+              model cannot provide.
             </p>
           </article>
           <article class="explainer__card">
@@ -338,10 +363,9 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
             <h3 class="card__title">Go vs BEAM</h3>
             <p class="card__body">
               Go goroutines are faster for raw CPU throughput. BEAM processes
-              include built-in supervision, per-process GC, and fault isolation.
-              The tradeoff is intentional: BEAM optimises for fault-tolerant
-              long-running systems. Go optimises for throughput. Different tools,
-              different problems.
+              include supervision, per-process GC, and fault isolation by default.
+              BEAM optimises for fault-tolerant long-running systems.
+              Go optimises for throughput. Different tools, different problems.
             </p>
           </article>
         </div>
