@@ -1,45 +1,41 @@
 <%!-- lib/concurrency_labs_web/controllers/blog_html/show.html.heex --%>
-
 <div class="blog-post">
   <div class="blog-post__inner">
-
     <%!-- Breadcrumb --%>
     <nav class="blog-post__nav" aria-label="Breadcrumb">
       <a href={~p"/blog"} class="back-link">← Writing</a>
     </nav>
-
-    <%!-- Post header --%>
+     <%!-- Post header --%>
     <header class="blog-post__header">
       <div class="blog-post__meta">
         <time datetime={Date.to_iso8601(@post.date)} class="post-card__date">
-          <%= format_date(@post.date) %>
+          {format_date(@post.date)}
         </time>
+        
         <span class="post-card__reading-time">
-          <%= @post.reading_time_min %> min read
+          {@post.reading_time_min} min read
         </span>
       </div>
-
-      <h1 class="blog-post__title"><%= @post.title %></h1>
-      <p class="blog-post__description"><%= @post.description %></p>
-
+      
+      <h1 class="blog-post__title">{@post.title}</h1>
+      
+      <p class="blog-post__description">{@post.description}</p>
+      
       <div class="blog-post__tags">
         <%= for tag <- @post.tags do %>
           <a href={~p"/blog?tag=#{tag}"} class="tag-chip tag-chip--sm">
-            <%= tag %>
+            {tag}
           </a>
         <% end %>
       </div>
     </header>
-
-    <%!-- Rendered Markdown — earmark produces safe HTML --%>
+     <%!-- Rendered Markdown — earmark produces safe HTML --%>
     <article class="prose" aria-label={@post.title}>
-      <%= {:safe, @post.body} %>
+      {{:safe, @post.body}}
     </article>
-
-    <%!-- Footer --%>
+     <%!-- Footer --%>
     <footer class="blog-post__footer">
       <a href={~p"/blog"} class="back-link">← All posts</a>
     </footer>
-
   </div>
 </div>

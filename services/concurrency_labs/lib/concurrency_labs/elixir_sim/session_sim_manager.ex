@@ -23,9 +23,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
   end
 
   def via(session_id) do
-    {:via, Registry,
-     {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs,
-      {:sim_mgr, session_id}}}
+    {:via, Registry, {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs, {:sim_mgr, session_id}}}
   end
 
   def report_position(session_id, id, x, y) do
@@ -93,6 +91,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
       # Storm turned off — respawn without storm flag so the dot lives normally
       Process.send_after(self(), {:do_respawn, id, [storm_mode: false]}, @storm_respawn_delay_ms)
     end
+
     {:noreply, state}
   end
 
@@ -124,8 +123,10 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
     ConcurrencyLabs.ElixirSim.SessionSimSupervisor.start_process(
       state.session_id,
       id,
-      [restarted: true, storm_mode: state.storm_mode]
+      restarted: true,
+      storm_mode: state.storm_mode
     )
+
     {:noreply, state}
   end
 
@@ -136,6 +137,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
       serializable = Map.new(state.positions, fn {id, {x, y}} -> {id, [x, y]} end)
       PubSub.broadcast(@pubsub, topic, {:positions_batch, serializable})
     end
+
     schedule_flush()
     {:noreply, %{state | positions: %{}}}
   end
@@ -157,6 +159,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
 
     # 2. Kill all dot processes
     sup_pid = GenServer.whereis(ConcurrencyLabs.ElixirSim.SessionSimSupervisor.via(session_id))
+
     if sup_pid do
       for {_, pid, _, _} <- DynamicSupervisor.which_children(sup_pid) do
         DynamicSupervisor.terminate_child(sup_pid, pid)
@@ -180,6 +183,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
 
   defp wait_for_empty_registry(registry, sleep_ms, retries) when retries > 0 do
     ids = Registry.select(registry, [{{:"$1", :_, :_}, [], [:"$1"]}])
+
     if ids == [] do
       :ok
     else
@@ -189,5 +193,4 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimManager do
   end
 
   defp wait_for_empty_registry(_registry, _sleep_ms, 0), do: :ok
-
 end

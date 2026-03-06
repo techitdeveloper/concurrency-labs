@@ -1,0 +1,244 @@
+<%!-- lib/concurrency_labs_web/controllers/home_html/index.html.heex --%>
+<%!-- ===================================================================
+     HERO
+     =================================================================== --%>
+<section class="home-hero" aria-label="Introduction">
+  <div class="home-hero__inner">
+    <div class="hero-grid" aria-hidden="true">
+      <%= for _ <- 1..80 do %>
+        <span class="hero-grid__dot"></span>
+      <% end %>
+    </div>
+    
+    <div class="home-hero__content">
+      <div class="hero-kicker">
+        <span class="hero-kicker__line"></span>
+        <span class="hero-kicker__text">{@hero.kicker}</span>
+      </div>
+      
+      <h1 class="hero-title">
+        <%= for line <- @hero.headline do %>
+          <%= if line == @hero.headline_accent do %>
+            <span class="hero-title__accent">{line}</span>
+          <% else %>
+            {line}<br />
+          <% end %>
+        <% end %>
+      </h1>
+      
+      <p class="hero-sub">{String.trim(@hero.subheadline)}</p>
+      
+      <div class="hero-ctas">
+        <a href="/elixir-concurrency" class="hero-cta hero-cta--elixir">
+          <span class="hero-cta__dot"></span> {@labs.elixir.link_text}
+        </a>
+        
+        <a href="/go-concurrency" class="hero-cta hero-cta--go">
+          <span class="hero-cta__dot"></span> {@labs.go.link_text}
+        </a>
+      </div>
+    </div>
+    
+    <div class="hero-stats" aria-hidden="true">
+      <%= for {stat, i} <- Enum.with_index(@hero_stats) do %>
+        <%= if i > 0 do %>
+          <div class="hero-stat__sep"></div>
+        <% end %>
+        
+        <div class="hero-stat">
+          <span class="hero-stat__value">{stat.value}</span>
+          <span class="hero-stat__label">{stat.label}</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%!-- ===================================================================
+     WHAT THIS SITE IS
+     =================================================================== --%>
+<section class="home-section" aria-labelledby="about-heading">
+  <div class="home-section__inner home-section__inner--prose">
+    <header class="section-header">
+      <span class="section-eyebrow">// what this is</span>
+      <h2 class="section-title" id="about-heading">
+        {@what_this_is.title}
+      </h2>
+    </header>
+    
+    <div class="prose-cols">
+      <%= for para <- @what_this_is.paragraphs do %>
+        <p>{String.trim(para)}</p>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%!-- ===================================================================
+     WHAT YOU'LL SEE — LAB CARDS
+     =================================================================== --%>
+<section class="home-section home-section--alt" aria-labelledby="labs-heading">
+  <div class="home-section__inner">
+    <header class="section-header">
+      <span class="section-eyebrow">// the labs</span>
+      <h2 class="section-title" id="labs-heading">What the experiments show</h2>
+    </header>
+    
+    <div class="labs-grid">
+      <article class="lab-card lab-card--elixir">
+        <div class="lab-card__header">
+          <span class="lab-card__badge lab-card__badge--elixir">
+            {@labs.elixir.badge}
+          </span>
+          
+          <a href="/elixir-concurrency" class="lab-card__link">
+            {@labs.elixir.link_text}
+          </a>
+        </div>
+        
+        <h3 class="lab-card__title">{@labs.elixir.title}</h3>
+        
+        <ul class="lab-card__points">
+          <%= for point <- @labs.elixir.points do %>
+            <li>{point}</li>
+          <% end %>
+        </ul>
+      </article>
+      
+      <article class="lab-card lab-card--go">
+        <div class="lab-card__header">
+          <span class="lab-card__badge lab-card__badge--go">
+            {@labs.go.badge}
+          </span>
+          
+          <a href="/go-concurrency" class="lab-card__link">
+            {@labs.go.link_text}
+          </a>
+        </div>
+        
+        <h3 class="lab-card__title">{@labs.go.title}</h3>
+        
+        <ul class="lab-card__points">
+          <%= for point <- @labs.go.points do %>
+            <li>{point}</li>
+          <% end %>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<%!-- ===================================================================
+     SELECTED WORK
+     =================================================================== --%>
+<section class="home-section" aria-labelledby="work-heading">
+  <div class="home-section__inner">
+    <header class="section-header">
+      <span class="section-eyebrow">// selected work</span>
+      <h2 class="section-title" id="work-heading">Production systems</h2>
+    </header>
+    
+    <div class="work-list">
+      <%= for entry <- @work do %>
+        <article class="work-card">
+          <div class="work-card__index">{entry.index}</div>
+          
+          <div class="work-card__body">
+            <div class="work-card__top">
+              <h3 class="work-card__title">{entry.title}</h3>
+               <span class="work-card__constraint">{entry.constraint}</span>
+            </div>
+            
+            <p class="work-card__desc">{String.trim(entry.description)}</p>
+            
+            <div class="work-card__footer">
+              <span class="work-card__owned">
+                <span class="work-card__owned-label">owned:</span> {entry.what_i_owned}
+              </span>
+              
+              <div class="work-card__stack">
+                <%= for tech <- entry.stack do %>
+                  <span class="work-stack-tag">{tech}</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%!-- ===================================================================
+     RECENT WRITING
+     =================================================================== --%>
+<%= if @recent_posts != [] do %>
+  <section class="home-section home-section--alt" aria-labelledby="writing-heading">
+    <div class="home-section__inner">
+      <header class="section-header section-header--row">
+        <div>
+          <span class="section-eyebrow">// writing</span>
+          <h2 class="section-title" id="writing-heading">Recent posts</h2>
+        </div>
+         <a href="/blog" class="section-more">All posts →</a>
+      </header>
+      
+      <div class="home-posts">
+        <%= for post <- @recent_posts do %>
+          <article class="home-post">
+            <div class="home-post__meta">
+              <time datetime={Date.to_iso8601(post.date)} class="home-post__date">
+                {format_date(post.date)}
+              </time>
+               <span class="home-post__sep">·</span>
+              <span class="home-post__reading-time">{post.reading_time_min} min</span>
+            </div>
+            
+            <h3 class="home-post__title">
+              <a href={"/blog/#{post.id}"} class="home-post__link">
+                {post.title}
+              </a>
+            </h3>
+            
+            <p class="home-post__desc">{post.description}</p>
+          </article>
+        <% end %>
+      </div>
+    </div>
+  </section>
+<% end %>
+
+<%!-- ===================================================================
+     ABOUT / CONTACT
+     =================================================================== --%>
+<section class="home-section home-section--last" aria-labelledby="contact-heading">
+  <div class="home-section__inner">
+    <header class="section-header">
+      <span class="section-eyebrow">// contact</span>
+      <h2 class="section-title" id="contact-heading">Work together</h2>
+    </header>
+    
+    <div class="about-block">
+      <div class="about-block__bio">
+        <%= for para <- @about.summary do %>
+          <p>{String.trim(para)}</p>
+        <% end %>
+      </div>
+      
+      <div class="about-block__links">
+        <%= for link <- @about.links do %>
+          <a
+            href={link.href}
+            class={"about-link #{if Map.get(link, :primary), do: "about-link--primary"}"}
+            {if Map.get(link, :external), do: [target: "_blank", rel: "noopener noreferrer"], else: []}
+          >
+            <span class="about-link__label">{link.label}</span>
+            <span class="about-link__arrow">
+              {if Map.get(link, :external), do: "↗", else: "→"}
+            </span>
+          </a>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>

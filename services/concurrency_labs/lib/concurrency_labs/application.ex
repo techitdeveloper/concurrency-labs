@@ -14,20 +14,17 @@ defmodule ConcurrencyLabs.Application do
 
       # Global registry for session supervisors and their named children.
       # Uses composite keys like {:session, id}, {:sim_sup, id}, {:sim_mgr, id}
-      {Registry,
-      keys: :unique,
-      name: ConcurrencyLabs.ElixirSim.SessionRegistry_Procs},
+      {Registry, keys: :unique, name: ConcurrencyLabs.ElixirSim.SessionRegistry_Procs},
 
       # Named DynamicSupervisor for session subtrees
       Supervisor.child_spec(
-        {DynamicSupervisor, strategy: :one_for_one, name: ConcurrencyLabs.ElixirSim.SessionDynSup},
+        {DynamicSupervisor,
+         strategy: :one_for_one, name: ConcurrencyLabs.ElixirSim.SessionDynSup},
         id: :session_dyn_sup
       ),
 
       # Manages session subtree start/stop
       ConcurrencyLabs.ElixirSim.SessionRegistry,
-
-
       {Phoenix.PubSub, name: ConcurrencyLabs.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: ConcurrencyLabs.Finch},
@@ -40,6 +37,7 @@ defmodule ConcurrencyLabs.Application do
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: ConcurrencyLabs.Supervisor]
+
     case Supervisor.start_link(children, opts) do
       {:ok, pid} ->
         {:ok, pid}

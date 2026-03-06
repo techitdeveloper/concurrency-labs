@@ -65,10 +65,13 @@ defmodule ConcurrencyLabs.ElixirSim.SimManager do
   @impl true
   def init(_opts) do
     schedule_flush()
-    {:ok, %{
-      positions: %{},   # id → {x, y}
-      storm_mode: false
-    }}
+
+    {:ok,
+     %{
+       # id → {x, y}
+       positions: %{},
+       storm_mode: false
+     }}
   end
 
   @impl true
@@ -80,6 +83,7 @@ defmodule ConcurrencyLabs.ElixirSim.SimManager do
     if state.storm_mode do
       schedule_respawn(id, @storm_respawn_delay_ms, storm_mode: true)
     end
+
     {:noreply, state}
   end
 

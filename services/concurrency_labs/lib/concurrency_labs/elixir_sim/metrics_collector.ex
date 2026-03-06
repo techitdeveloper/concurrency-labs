@@ -20,9 +20,7 @@ defmodule ConcurrencyLabs.ElixirSim.MetricsCollector do
   end
 
   def via(session_id) do
-    {:via, Registry,
-     {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs,
-      {:metrics, session_id}}}
+    {:via, Registry, {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs, {:metrics, session_id}}}
   end
 
   @impl true
@@ -64,7 +62,9 @@ defmodule ConcurrencyLabs.ElixirSim.MetricsCollector do
               {:memory, bytes} -> bytes
               nil -> 0
             end
-          [] -> 0
+
+          [] ->
+            0
         end
       end)
 

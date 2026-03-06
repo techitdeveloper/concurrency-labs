@@ -1,38 +1,36 @@
 <%!-- lib/concurrency_labs_web/controllers/blog_html/index.html.heex --%>
-
 <div class="blog-index">
-
   <header class="blog-index__header">
     <div class="blog-index__headline">
       <span class="blog-eyebrow">writing</span>
       <h1 class="blog-index__title">Technical Notes</h1>
+      
       <p class="blog-index__lead">
         Concurrency, runtimes, and the tradeoffs that matter
         in production systems.
       </p>
     </div>
+    
     <div class="blog-index__count">
-      <strong><%= length(@posts) %></strong>
-      <%= if length(@posts) == 1, do: "post", else: "posts" %>
+      <strong>{length(@posts)}</strong> {if length(@posts) == 1, do: "post", else: "posts"}
     </div>
   </header>
-
-  <%!-- Tag filter --%>
+   <%!-- Tag filter --%>
   <nav class="tag-filter" aria-label="Filter posts by tag">
     <a href={~p"/blog"} class={"tag-chip #{if is_nil(@active_tag), do: "tag-chip--active"}"}>
       all
     </a>
+    
     <%= for tag <- @all_tags do %>
       <a
         href={~p"/blog?tag=#{tag}"}
         class={"tag-chip #{if @active_tag == tag, do: "tag-chip--active"}"}
       >
-        <%= tag %>
+        {tag}
       </a>
     <% end %>
   </nav>
-
-  <%!-- Post list --%>
+   <%!-- Post list --%>
   <%= if @posts == [] do %>
     <p class="blog-empty">No posts for this tag yet.</p>
   <% else %>
@@ -40,41 +38,37 @@
       <%= for post <- @posts do %>
         <li>
           <article class="post-card">
-
             <%!-- Left: date + reading time --%>
             <div class="post-card__aside">
-              <time
-                datetime={Date.to_iso8601(post.date)}
-                class="post-card__date"
-              >
-                <%= format_date(post.date) %>
+              <time datetime={Date.to_iso8601(post.date)} class="post-card__date">
+                {format_date(post.date)}
               </time>
+              
               <span class="post-card__reading-time">
-                <%= post.reading_time_min %> min
+                {post.reading_time_min} min
               </span>
             </div>
-
-            <%!-- Right: title, description, tags --%>
+             <%!-- Right: title, description, tags --%>
             <div class="post-card__content">
               <h2 class="post-card__title">
                 <a href={~p"/blog/#{post.id}"} class="post-card__link">
-                  <%= post.title %>
+                  {post.title}
                 </a>
               </h2>
-              <p class="post-card__description"><%= post.description %></p>
+              
+              <p class="post-card__description">{post.description}</p>
+              
               <div class="post-card__tags">
                 <%= for tag <- post.tags do %>
                   <a href={~p"/blog?tag=#{tag}"} class="tag-chip tag-chip--sm">
-                    <%= tag %>
+                    {tag}
                   </a>
                 <% end %>
               </div>
             </div>
-
           </article>
         </li>
       <% end %>
     </ol>
   <% end %>
-
 </div>

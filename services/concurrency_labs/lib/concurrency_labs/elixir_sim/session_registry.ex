@@ -24,8 +24,10 @@ defmodule ConcurrencyLabs.ElixirSim.SessionRegistry do
 
   @impl true
   def handle_call({:start, session_id}, _from, %{sessions: sessions} = state) do
-    case DynamicSupervisor.start_child(@dyn_sup,
-           {ConcurrencyLabs.ElixirSim.Session, session_id}) do
+    case DynamicSupervisor.start_child(
+           @dyn_sup,
+           {ConcurrencyLabs.ElixirSim.Session, session_id}
+         ) do
       {:ok, pid} ->
         ConcurrencyLabs.ElixirSim.SessionSimSupervisor.seed(session_id)
         new_state = %{state | sessions: Map.put(sessions, session_id, pid)}

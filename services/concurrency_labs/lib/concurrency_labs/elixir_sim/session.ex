@@ -22,8 +22,7 @@ defmodule ConcurrencyLabs.ElixirSim.Session do
   }
 
   def start_link(session_id) do
-    Supervisor.start_link(__MODULE__, session_id,
-      name: via(session_id))
+    Supervisor.start_link(__MODULE__, session_id, name: via(session_id))
   end
 
   def stop(session_id) do
@@ -34,9 +33,7 @@ defmodule ConcurrencyLabs.ElixirSim.Session do
   end
 
   def via(session_id) do
-    {:via, Registry,
-     {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs,
-      {:session, session_id}}}
+    {:via, Registry, {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs, {:session, session_id}}}
   end
 
   @impl true
@@ -45,8 +42,7 @@ defmodule ConcurrencyLabs.ElixirSim.Session do
       # Per-session dot registry — keys are integer dot IDs
       %{
         id: :"dot_registry_#{session_id}",
-        start: {Registry, :start_link,
-                [[keys: :unique, name: registry_name(session_id)]]},
+        start: {Registry, :start_link, [[keys: :unique, name: registry_name(session_id)]]},
         type: :supervisor
       },
 
@@ -57,7 +53,7 @@ defmodule ConcurrencyLabs.ElixirSim.Session do
       {SessionSimManager, session_id: session_id},
 
       # Metrics sampler
-      {MetricsCollector, session_id: session_id},
+      {MetricsCollector, session_id: session_id}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

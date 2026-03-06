@@ -25,7 +25,9 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   def kill(session_id, id) do
     case GenServer.whereis(via(session_id, id)) do
-      nil -> :not_found
+      nil ->
+        :not_found
+
       pid ->
         topic = Session.pubsub_topic(session_id)
         PubSub.broadcast(@pubsub, topic, {:process_dying, id})

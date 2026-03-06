@@ -1,0 +1,552 @@
+/* ==========================================================================
+   assets/css/hire.css
+   /hire page only. Tokens from app_layout.css :root.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Page shell
+-------------------------------------------------------------------------- */
+.hire-page {
+  min-height: calc(100vh - var(--nav-h));
+}
+
+/* --------------------------------------------------------------------------
+   Header
+-------------------------------------------------------------------------- */
+.hire-header {
+  border-bottom: 1px solid var(--border);
+  padding: 4rem 0 3.5rem;
+  background: var(--surface);
+}
+
+.hire-header__inner {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 0 3rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.hire-eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--cyan);
+  margin-bottom: 1rem;
+}
+
+.hire-title {
+  font-family: var(--mono);
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 0.9rem;
+}
+
+.hire-positioning {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  max-width: 580px;
+  margin: 0;
+}
+
+/* Availability badge */
+.availability-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 0.5em 1em;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+  margin-top: 0.5rem;
+}
+
+.availability-badge--open {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.availability-badge--limited {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.availability-badge--unavailable {
+  color: var(--text-dim);
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+.availability-badge__pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pip-pulse 2s ease-in-out infinite;
+}
+
+.availability-badge--unavailable .availability-badge__pip {
+  animation: none;
+}
+
+/* --------------------------------------------------------------------------
+   Body layout — two-column: label | content
+-------------------------------------------------------------------------- */
+.hire-body {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+.hire-section {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0 3rem;
+  padding: 3.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.hire-section--last {
+  border-bottom: none;
+}
+
+.hire-section__label {
+  padding-top: 0.15rem;
+}
+
+.hire-section__eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  opacity: 0.4;
+  margin-bottom: 0.4rem;
+}
+
+.hire-section__title {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  position: sticky;
+  top: calc(var(--nav-h) + 1.5rem);
+}
+
+.hire-section__content {
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   What I can help with
+-------------------------------------------------------------------------- */
+.help-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.help-item {
+  background: var(--bg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: background 0.15s;
+}
+
+.help-item:hover { background: rgba(255,255,255,0.015); }
+
+.help-item__area {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.help-item__detail {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Experience
+-------------------------------------------------------------------------- */
+.exp-block {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0 2.5rem;
+  align-items: start;
+}
+
+.exp-years {
+  text-align: center;
+  padding: 1.5rem 0;
+  border-right: 1px solid var(--border);
+  padding-right: 2.5rem;
+}
+
+.exp-years__value {
+  display: block;
+  font-family: var(--mono);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.exp-years__label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+}
+
+.exp-summary {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.75;
+  margin: 0 0 1.25rem;
+}
+
+.exp-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.exp-highlights li {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.55;
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.exp-highlights li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--cyan);
+}
+
+/* --------------------------------------------------------------------------
+   Skills
+-------------------------------------------------------------------------- */
+.skills-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.skill-group {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0 1.5rem;
+  align-items: start;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.skill-group:last-child { border-bottom: none; padding-bottom: 0; }
+
+.skill-group__category {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding-top: 0.2rem;
+}
+
+.skill-group__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.skill-tag {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3em 0.7em;
+  letter-spacing: 0.02em;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.skill-tag:hover {
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text-bright);
+}
+
+/* --------------------------------------------------------------------------
+   Selected work (hire page variant — no index column)
+-------------------------------------------------------------------------- */
+.hire-work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.hire-work-card {
+  background: var(--bg);
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: background 0.15s;
+}
+
+.hire-work-card:hover { background: rgba(255,255,255,0.015); }
+
+.hire-work-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hire-work-card__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hire-work-card__title {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.hire-work-card__desc {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.75;
+  margin: 0;
+}
+
+.hire-work-card__owned {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+/* Labs callout */
+.labs-callout {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.labs-callout__text {
+  font-family: var(--sans);
+  font-size: 0.83rem;
+  color: var(--text-dim);
+  line-height: 1.65;
+  margin: 0;
+  max-width: 460px;
+}
+
+.labs-callout__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.labs-callout__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.55em 1em;
+  border-radius: var(--radius);
+  border: 1px solid;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.labs-callout__link--elixir {
+  color: var(--purple);
+  border-color: rgba(167,139,250,0.35);
+  background: var(--purple-glow);
+}
+
+.labs-callout__link--elixir:hover {
+  background: rgba(167,139,250,0.18);
+  border-color: rgba(167,139,250,0.6);
+}
+
+.labs-callout__link--go {
+  color: var(--cyan);
+  border-color: rgba(0,210,255,0.35);
+  background: var(--cyan-glow);
+}
+
+.labs-callout__link--go:hover {
+  background: rgba(0,210,255,0.18);
+  border-color: rgba(0,210,255,0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Contact
+-------------------------------------------------------------------------- */
+.contact-block {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: start;
+}
+
+.contact-avail__detail {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.7;
+  margin: 0 0 0.5rem;
+}
+
+.contact-avail__pref {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--cyan);
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.contact-block__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 260px;
+}
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.15s;
+}
+
+.contact-btn:hover {
+  color: var(--text);
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.03);
+}
+
+.contact-btn--primary {
+  color: var(--cyan);
+  border-color: rgba(0,210,255,0.35);
+  background: var(--cyan-glow);
+}
+
+.contact-btn--primary:hover {
+  background: rgba(0,210,255,0.15);
+  border-color: rgba(0,210,255,0.6);
+  box-shadow: 0 0 16px rgba(0,210,255,0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+-------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .hire-section {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .hire-section__title { position: static; }
+  .hire-section__label {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .hire-section__eyebrow { margin-bottom: 0; }
+}
+
+@media (max-width: 768px) {
+  .hire-header__inner  { flex-direction: column; padding: 0 1.5rem; }
+  .hire-header         { padding: 2.5rem 0 2rem; }
+  .hire-body           { padding: 0 1.5rem; }
+  .help-grid           { grid-template-columns: 1fr; }
+  .exp-block           { grid-template-columns: 1fr; }
+  .exp-years           { border-right: none; border-bottom: 1px solid var(--border); padding: 0 0 1rem; text-align: left; display: flex; align-items: baseline; gap: 0.5rem; }
+  .skill-group         { grid-template-columns: 1fr; gap: 0.5rem; }
+  .contact-block       { grid-template-columns: 1fr; }
+  .contact-block__actions { min-width: unset; }
+  .labs-callout        { flex-direction: column; align-items: flex-start; }
+}

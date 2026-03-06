@@ -17,13 +17,17 @@ defmodule ConcurrencyLabsWeb.Router do
   scope "/", ConcurrencyLabsWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # get "/", PageController, :home
+
+    get "/", HomeController, :index
 
     live "/go-concurrency", GoLabLive, :index
     live "/elixir-concurrency", ElixirLabLive, :index
 
-    get "/blog",      BlogController, :index
-    get "/blog/:id",  BlogController, :show
+    get "/blog", BlogController, :index
+    get "/blog/:id", BlogController, :show
+
+    get "/hire", HireController, :index
   end
 
   # Other scopes may use custom stacks.

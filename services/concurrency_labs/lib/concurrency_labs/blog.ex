@@ -17,7 +17,8 @@ defmodule ConcurrencyLabs.Blog do
     from: Application.app_dir(:concurrency_labs, "priv/posts/**/*.md"),
     as: :posts,
     earmark_options: %Earmark.Options{
-      code_class_prefix: "language-",  # works with highlight.js
+      # works with highlight.js
+      code_class_prefix: "language-",
       smartypants: true
     }
 

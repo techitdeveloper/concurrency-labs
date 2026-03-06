@@ -10,12 +10,15 @@ defmodule ConcurrencyLabsWeb.BlogController do
     {posts, active_tag} =
       case params do
         %{"tag" => tag} -> {Blog.posts_by_tag(tag), tag}
-        _               -> {Blog.all_posts(), nil}
+        _ -> {Blog.all_posts(), nil}
       end
 
     conn
     |> assign(:page_title, "Writing")
-    |> assign(:page_description, "Technical writing on Elixir/OTP, Go runtime behaviour, and backend system design.")
+    |> assign(
+      :page_description,
+      "Technical writing on Elixir/OTP, Go runtime behaviour, and backend system design."
+    )
     |> render(:index, posts: posts, all_tags: Blog.all_tags(), active_tag: active_tag)
   end
 

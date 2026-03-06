@@ -33,6 +33,7 @@ defmodule ConcurrencyLabs.ElixirSim.ElixirSimSupervisor do
 
   def spawn_one do
     id = next_id()
+
     if id >= @max_count do
       :max_reached
     else
@@ -111,8 +112,12 @@ defmodule ConcurrencyLabs.ElixirSim.ElixirSimSupervisor do
     }
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
-      {:ok, _} -> :ok
-      {:error, {:already_started, _}} -> :ok
+      {:ok, _} ->
+        :ok
+
+      {:error, {:already_started, _}} ->
+        :ok
+
       {:error, reason} ->
         require Logger
         Logger.warning("Could not start process #{id}: #{inspect(reason)}")

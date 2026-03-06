@@ -20,9 +20,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
   end
 
   def via(session_id) do
-    {:via, Registry,
-     {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs,
-      {:sim_sup, session_id}}}
+    {:via, Registry, {ConcurrencyLabs.ElixirSim.SessionRegistry_Procs, {:sim_sup, session_id}}}
   end
 
   @impl true
@@ -41,6 +39,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
 
   def spawn_one(session_id) do
     id = next_id(session_id)
+
     if id >= @max_count do
       :max_reached
     else
@@ -70,8 +69,12 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
     |> Enum.take(count)
     |> Enum.each(fn id ->
       DotProcess.kill(session_id, id)
+
       ConcurrencyLabs.ElixirSim.SessionSimManager.schedule_respawn(
-        session_id, id, 1_200)
+        session_id,
+        id,
+        1_200
+      )
     end)
 
     count
@@ -89,6 +92,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
         for i <- batch do
           start_process(session_id, start_id + i, restarted: false)
         end
+
         Process.sleep(@stress_batch_delay)
       end)
     end)
@@ -114,8 +118,12 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
     }
 
     case DynamicSupervisor.start_child(sup_pid, spec) do
-      {:ok, _} -> :ok
-      {:error, {:already_started, _}} -> :ok
+      {:ok, _} ->
+        :ok
+
+      {:error, {:already_started, _}} ->
+        :ok
+
       {:error, reason} ->
         require Logger
         Logger.warning("Session #{session_id}: failed to start process #{id}: #{inspect(reason)}")

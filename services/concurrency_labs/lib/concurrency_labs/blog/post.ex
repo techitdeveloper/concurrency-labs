@@ -7,13 +7,20 @@
 defmodule ConcurrencyLabs.Blog.Post do
   @enforce_keys [:id, :title, :date, :description, :tags, :body, :reading_time_min]
   defstruct [
-    :id,            # derived from filename: "2024-01-15-beam-memory" → slug used in URL
-    :title,         # frontmatter: title
-    :date,          # frontmatter: date (parsed to Date)
-    :description,   # frontmatter: description (used in meta tags + card preview)
-    :tags,          # frontmatter: tags (list of strings)
-    :body,          # rendered HTML (earmark does the conversion)
-    :reading_time_min  # computed from word count
+    # derived from filename: "2024-01-15-beam-memory" → slug used in URL
+    :id,
+    # frontmatter: title
+    :title,
+    # frontmatter: date (parsed to Date)
+    :date,
+    # frontmatter: description (used in meta tags + card preview)
+    :description,
+    # frontmatter: tags (list of strings)
+    :tags,
+    # rendered HTML (earmark does the conversion)
+    :body,
+    # computed from word count
+    :reading_time_min
   ]
 
   # NimblePublisher calls build/3 at compile time for each .md file.
