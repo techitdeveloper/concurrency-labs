@@ -4,17 +4,39 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title suffix=" · Phoenix Framework">
-      <%= assigns[:page_title] || "ConcurrencyLabs" %>
+    <meta name="theme-color" content="#080810" />
+
+    <.live_title suffix=" · concurrency-labs">
+      <%= assigns[:page_title] || "concurrency-labs" %>
     </.live_title>
+
+    <meta
+      name="description"
+      content={assigns[:page_description] || "Live concurrency experiments in Elixir/OTP and Go — interactive visualizations of processes, goroutines, supervision, and memory."}
+    />
+
+    <%!-- Open Graph --%>
+    <meta property="og:type"        content="website" />
+    <meta property="og:site_name"   content="concurrency-labs" />
+    <meta property="og:title"       content={assigns[:page_title] || "concurrency-labs"} />
+    <meta property="og:description" content={assigns[:page_description] || "Live Elixir/OTP and Go concurrency experiments."} />
+
+    <%!-- Fonts --%>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <%!-- Chart.js — must load before app.js so hooks can reference Chart --%>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
   </head>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <body class="bg-white">
+
+<body class="site-body">
     <%= @inner_content %>
   </body>
 </html>

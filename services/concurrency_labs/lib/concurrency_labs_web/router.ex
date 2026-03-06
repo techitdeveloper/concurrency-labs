@@ -21,6 +21,9 @@ defmodule ConcurrencyLabsWeb.Router do
 
     live "/go-concurrency", GoLabLive, :index
     live "/elixir-concurrency", ElixirLabLive, :index
+
+    get "/blog",      BlogController, :index
+    get "/blog/:id",  BlogController, :show
   end
 
   # Other scopes may use custom stacks.

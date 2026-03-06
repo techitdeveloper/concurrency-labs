@@ -20,7 +20,7 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
       |> assign(:go_ws_url, @go_ws_url)
       |> assign(:connected, false)
 
-    {:ok, socket, layout: false}
+    {:ok, socket}
   end
 
   @impl true

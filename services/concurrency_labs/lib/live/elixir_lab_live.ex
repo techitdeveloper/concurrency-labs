@@ -36,7 +36,7 @@ defmodule ConcurrencyLabsWeb.ElixirLabLive do
       |> assign(:storm_mode, false)
       |> assign(:last_event, nil)
 
-    {:ok, socket, layout: false}
+    {:ok, socket}
   end
 
   @impl true

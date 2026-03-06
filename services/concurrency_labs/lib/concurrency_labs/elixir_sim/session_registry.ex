@@ -17,17 +17,19 @@ defmodule ConcurrencyLabs.ElixirSim.SessionRegistry do
 
   @impl true
   def init(_opts) do
-    # No need to start a DynamicSupervisor here — it's already named and running
+    # Trap exits so we know when session children die unexpectedly
+    Process.flag(:trap_exit, true)
     {:ok, %{sessions: %{}}}
   end
 
   @impl true
-  def handle_call({:start, session_id}, _from, state) do
+  def handle_call({:start, session_id}, _from, %{sessions: sessions} = state) do
     case DynamicSupervisor.start_child(@dyn_sup,
            {ConcurrencyLabs.ElixirSim.Session, session_id}) do
       {:ok, pid} ->
         ConcurrencyLabs.ElixirSim.SessionSimSupervisor.seed(session_id)
-        {:reply, :ok, put_in(state, [:sessions, session_id], pid)}
+        new_state = %{state | sessions: Map.put(sessions, session_id, pid)}
+        {:reply, :ok, new_state}
 
       {:error, {:already_started, _pid}} ->
         {:reply, :ok, state}
@@ -38,12 +40,25 @@ defmodule ConcurrencyLabs.ElixirSim.SessionRegistry do
   end
 
   @impl true
-  def handle_cast({:stop, session_id}, state) do
-    case Map.get(state.sessions, session_id) do
-      nil -> {:noreply, state}
+  def handle_cast({:stop, session_id}, %{sessions: sessions} = state) do
+    case Map.get(sessions, session_id) do
+      nil ->
+        {:noreply, state}
+
       pid ->
         DynamicSupervisor.terminate_child(@dyn_sup, pid)
-        {:noreply, Map.delete(state.sessions, session_id)}
+        {:noreply, %{state | sessions: Map.delete(sessions, session_id)}}
     end
+  end
+
+  # Handle EXIT messages from monitored session children gracefully
+  # so the registry itself never crashes due to a child dying
+  @impl true
+  def handle_info({:EXIT, _pid, _reason}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info(_msg, state) do
+    {:noreply, state}
   end
 end

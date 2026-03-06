@@ -1,32 +1,101 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
-    <div class="flex items-center gap-4">
-      <a href="/">
-        <img src={~p"/images/logo.svg"} width="36" />
-      </a>
-      <p class="bg-brand/5 text-brand rounded-full px-2 font-medium leading-6">
-        v<%= Application.spec(:phoenix, :vsn) %>
-      </p>
+<%!--
+  app.html.heex
+  Wraps every LiveView. Contains:
+    - Site nav (global, responsive)
+    - Flash messages
+    - Page slot
+  No JS framework. Pure server-rendered HTML + LiveView.
+--%>
+
+<nav class="site-nav" aria-label="Main navigation">
+  <div class="site-nav__inner">
+
+    <%!-- Wordmark / home link --%>
+    <a href="/" class="site-nav__brand" aria-label="concurrency-labs home">
+      <span class="brand__bracket">[</span>
+      <span class="brand__name">concurrency<span class="brand__accent">-</span>labs</span>
+      <span class="brand__bracket">]</span>
+    </a>
+
+    <%!-- Primary links --%>
+    <ul class="site-nav__links" role="list">
+      <li>
+        <a href="/elixir-concurrency" class="nav-link">
+          <span class="nav-link__dot nav-link__dot--elixir"></span>
+          Elixir Lab
+        </a>
+      </li>
+      <li>
+        <a href="/go-concurrency" class="nav-link">
+          <span class="nav-link__dot nav-link__dot--go"></span>
+          Go Lab
+        </a>
+      </li>
+      <li>
+        <a href="/blog" class="nav-link">Writing</a>
+      </li>
+      <li>
+        <a href="/projects" class="nav-link">Projects</a>
+      </li>
+    </ul>
+
+    <%!-- CTA --%>
+    <a href="/hire" class="nav-cta">Hire Me</a>
+
+    <%!-- Mobile hamburger (toggled via CSS checkbox hack — no JS required) --%>
+    <label class="nav-burger" for="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </label>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle-input" aria-hidden="true" />
+  </div>
+
+  <%!-- Mobile drawer --%>
+  <div class="nav-drawer" aria-hidden="true">
+    <ul role="list">
+      <li><a href="/elixir-concurrency" class="nav-link">Elixir Lab</a></li>
+      <li><a href="/go-concurrency"     class="nav-link">Go Lab</a></li>
+      <li><a href="/blog"               class="nav-link">Writing</a></li>
+      <li><a href="/projects"           class="nav-link">Projects</a></li>
+      <li><a href="/hire"               class="nav-link nav-link--cta">Hire Me</a></li>
+    </ul>
+  </div>
+</nav>
+
+<%!-- Flash messages --%>
+<div
+  id="flash-container"
+  aria-live="polite"
+  role="status"
+  class="flash-container"
+>
+  <.flash kind={:info}  title="Info"  flash={@flash} />
+  <.flash kind={:error} title="Error" flash={@flash} />
+</div>
+
+<%!-- Page content --%>
+<main class="site-main">
+  <%= @inner_content %>
+</main>
+
+<%!-- Site footer --%>
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="footer__left">
+      <span class="footer__brand">concurrency-labs</span>
+      <span class="footer__sep">·</span>
+      <span class="footer__tagline">real processes. real goroutines. real metrics.</span>
     </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
-      <a href="https://twitter.com/elixirphoenix" class="hover:text-zinc-700">
-        @elixirphoenix
-      </a>
-      <a href="https://github.com/phoenixframework/phoenix" class="hover:text-zinc-700">
+    <div class="footer__right">
+      <a
+        href="https://github.com/techitdeveloper/concurrency-labs"
+        class="footer__link"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         GitHub
       </a>
-      <a
-        href="https://hexdocs.pm/phoenix/overview.html"
-        class="rounded-lg bg-zinc-100 px-2 py-1 hover:bg-zinc-200/80"
-      >
-        Get Started <span aria-hidden="true">&rarr;</span>
-      </a>
+      <span class="footer__sep">·</span>
+      <a href="mailto:hi@concurrency-labs.dev" class="footer__link">Contact</a>
     </div>
   </div>
-</header>
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-2xl">
-    <.flash_group flash={@flash} />
-    <%= @inner_content %>
-  </div>
-</main>
+</footer>

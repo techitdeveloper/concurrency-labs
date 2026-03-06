@@ -1,26 +1,10 @@
-/* assets/css/go_lab.css */
+/* assets/css/go_lab.css
+   Tokens live in app_layout.css :root — do NOT redefine them here.
+   ------------------------------------------------------------------ */
 
-/* -----------------------------------------------------------------------
-   Design system tokens
------------------------------------------------------------------------ */
-:root {
-  --cyan:      #00d2ff;
-  --cyan-dim:  #00b4d8;
-  --cyan-glow: rgba(0, 210, 255, 0.15);
-  --bg:        #080810;
-  --surface:   #0f0f1a;
-  --surface-2: #16162a;
-  --border:    rgba(255, 255, 255, 0.08);
-  --text:      #d4d4e8;
-  --text-dim:  #6b6b8a;
-  --mono:      "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
-  --sans:      "DM Sans", system-ui, sans-serif;
-  --radius:    6px;
-}
-
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Page shell
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .go-lab {
   background: var(--bg);
   min-height: 100vh;
@@ -29,9 +13,9 @@
   padding: 0 0 4rem;
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Header
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .lab-header {
   display: flex;
   align-items: flex-start;
@@ -49,7 +33,7 @@
   color: var(--cyan);
   background: var(--cyan-glow);
   border: 1px solid rgba(0, 210, 255, 0.3);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   padding: 0.2em 0.6em;
   margin-bottom: 0.75rem;
 }
@@ -58,7 +42,7 @@
   font-family: var(--mono);
   font-size: 1.75rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
   margin: 0 0 0.5rem;
   letter-spacing: -0.02em;
 }
@@ -71,9 +55,9 @@
   margin: 0;
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Live status pill
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .status-pill {
   display: flex;
   align-items: center;
@@ -115,9 +99,9 @@
   50%       { opacity: 0.3; }
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Split layout
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .lab-body {
   display: grid;
   grid-template-columns: 1fr 480px;
@@ -138,9 +122,9 @@
   }
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Panel shared styles
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .sim-panel,
 .metrics-panel {
   background: var(--surface);
@@ -167,9 +151,7 @@
   color: var(--cyan);
 }
 
-.panel-label--dim {
-  color: var(--text-dim);
-}
+.panel-label--dim { color: var(--text-dim); }
 
 .dot-counter {
   font-family: var(--mono);
@@ -177,11 +159,9 @@
   color: var(--text-dim);
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Simulation canvas
-   The wrapper uses aspect-ratio to stay proportional as the panel resizes.
-   The canvas pixel dimensions are set in JS to match Go's 1000×750 constants.
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .canvas-wrapper {
   position: relative;
   display: block;
@@ -210,9 +190,9 @@
   backdrop-filter: blur(2px);
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Controls
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .sim-controls {
   display: flex;
   gap: 0.75rem;
@@ -221,44 +201,9 @@
   background: var(--surface-2);
 }
 
-.btn {
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  padding: 0.6em 1.4em;
-  border-radius: var(--radius);
-  border: 1px solid;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn--primary {
-  background: var(--cyan);
-  color: #080810;
-  border-color: var(--cyan);
-}
-
-.btn--primary:hover {
-  background: #7df9ff;
-  border-color: #7df9ff;
-  box-shadow: 0 0 16px rgba(0, 210, 255, 0.4);
-}
-
-.btn--ghost {
-  background: transparent;
-  color: var(--text-dim);
-  border-color: var(--border);
-}
-
-.btn--ghost:hover {
-  color: var(--text);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* -----------------------------------------------------------------------
-   Metrics panel — stat cards
------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Metrics — stat cards
+-------------------------------------------------------------------------- */
 .stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -291,19 +236,16 @@
   letter-spacing: -0.02em;
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Memory chart
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .chart-container {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border);
-  /* Critical: explicit height so the canvas has a stable parent to fill */
   height: 260px;
-  /* Prevent flex/grid from stretching it */
   flex-shrink: 0;
   overflow: hidden;
 }
-
 
 .chart-header {
   display: flex;
@@ -326,7 +268,7 @@
   color: var(--text-dim);
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   padding: 0.1em 0.5em;
 }
 
@@ -334,15 +276,13 @@
 #elixir-memory-chart {
   display: block;
   width: 100% !important;
-  height: 200px !important;  /* container 260px - header ~40px - padding 20px */
+  height: 200px !important;
 }
 
-/* -----------------------------------------------------------------------
-   Metrics footer rows (dot count + GC cycles)
------------------------------------------------------------------------ */
-.metrics-footer {
-  border-bottom: 1px solid var(--border);
-}
+/* --------------------------------------------------------------------------
+   Metrics footer rows
+-------------------------------------------------------------------------- */
+.metrics-footer { border-bottom: 1px solid var(--border); }
 
 .footer-row {
   display: flex;
@@ -352,9 +292,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.footer-row:last-child {
-  border-bottom: none;
-}
+.footer-row:last-child { border-bottom: none; }
 
 .footer-label {
   font-family: var(--mono);
@@ -371,9 +309,9 @@
   color: var(--text);
 }
 
-/* -----------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Disclaimer
------------------------------------------------------------------------ */
+-------------------------------------------------------------------------- */
 .metrics-disclaimer {
   font-family: var(--mono);
   font-size: 0.63rem;
@@ -388,28 +326,20 @@
   font-weight: 600;
 }
 
-/* =========================================================================
-   EXPLANATION SECTION
-   Append this to the bottom of assets/css/go_lab.css
-   ========================================================================= */
-
-/* -----------------------------------------------------------------------
-   Section shell
------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Explainer section
+-------------------------------------------------------------------------- */
 .explainer {
   margin-top: 3rem;
   border-top: 1px solid var(--border);
 }
 
 .explainer__inner {
-  max-width: 1400px;
+  max-width: var(--content-w);
   margin: 0 auto;
   padding: 3rem;
 }
 
-/* -----------------------------------------------------------------------
-   Header
------------------------------------------------------------------------ */
 .explainer__header {
   margin-bottom: 2.5rem;
   max-width: 640px;
@@ -428,7 +358,7 @@
   font-family: var(--mono);
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
   margin: 0 0 0.85rem;
   letter-spacing: -0.02em;
 }
@@ -441,9 +371,6 @@
   margin: 0;
 }
 
-/* -----------------------------------------------------------------------
-   Card grid — 4 columns on wide, 2 on mid, 1 on narrow
------------------------------------------------------------------------ */
 .explainer__grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -455,17 +382,9 @@
   margin-bottom: 2rem;
 }
 
-@media (max-width: 1280px) {
-  .explainer__grid { grid-template-columns: repeat(2, 1fr); }
-}
+@media (max-width: 1280px) { .explainer__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .explainer__grid { grid-template-columns: 1fr; } }
 
-@media (max-width: 640px) {
-  .explainer__grid { grid-template-columns: 1fr; }
-}
-
-/* -----------------------------------------------------------------------
-   Individual card
------------------------------------------------------------------------ */
 .explainer__card {
   background: var(--surface);
   padding: 1.5rem;
@@ -475,9 +394,7 @@
   transition: background 0.15s ease;
 }
 
-.explainer__card:hover {
-  background: var(--surface-2);
-}
+.explainer__card:hover { background: var(--surface-2); }
 
 .card__index {
   font-family: var(--mono);
@@ -492,7 +409,7 @@
   font-family: var(--mono);
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -510,19 +427,13 @@
   font-family: var(--mono);
   font-size: 0.78rem;
   color: var(--cyan);
-  background: rgba(0, 210, 255, 0.08);
+  background: var(--cyan-glow);
   border: 1px solid rgba(0, 210, 255, 0.15);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   padding: 0.05em 0.35em;
 }
 
-/* -----------------------------------------------------------------------
-   Footer — tech stack tags
------------------------------------------------------------------------ */
-.explainer__footer {
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
+.explainer__footer { padding-top: 1.5rem; border-top: 1px solid var(--border); }
 
 .explainer__stack {
   display: flex;
