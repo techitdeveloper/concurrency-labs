@@ -7,6 +7,7 @@ defmodule ConcurrencyLabsWeb.BlogHTML do
   use ConcurrencyLabsWeb, :html
 
   import ConcurrencyLabsWeb.Helpers.Utils
+  import ConcurrencyLabsWeb.Helpers.SEO
 
   embed_templates "blog_html/*"
 end

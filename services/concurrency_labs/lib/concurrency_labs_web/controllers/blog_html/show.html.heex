@@ -1,5 +1,8 @@
 <%!-- lib/concurrency_labs_web/controllers/blog_html/show.html.heex --%>
 <div class="blog-post">
+  <script type="application/ld+json">
+    {raw blog_post_json_ld(@post)}
+  </script>
   <div class="blog-post__inner">
     <%!-- Breadcrumb --%>
     <nav class="blog-post__nav" aria-label="Breadcrumb">
