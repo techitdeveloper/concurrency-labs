@@ -23,6 +23,7 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import { GoSimulation, MemoryChart } from "./hooks/go_lab";
 import { ElixirSimulation, ElixirMemoryChart } from "./hooks/elixir_lab";
+import { initCopyButtons } from "./copy_email";
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {

@@ -1,0 +1,326 @@
+/* ==========================================================================
+   assets/css/polish.css
+   Cross-page utilities: copy button, hero visual, process tree.
+   Import in app.css: @import "./polish.css";
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Copy button
+-------------------------------------------------------------------------- */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0.4em 0.5em;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  color: var(--cyan);
+  border-color: rgba(0, 210, 255, 0.35);
+  background: var(--cyan-glow);
+}
+
+.copy-btn--copied {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.copy-btn--standalone {
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+}
+
+/* Email row: mailto link + copy button side by side */
+.about-link--email-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.about-link__mailto {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.15s;
+}
+
+.about-link__mailto:hover {
+  color: var(--text);
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.03);
+}
+
+/* Contact page: email row */
+.contact-btn-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+
+.contact-btn--grow { flex: 1; }
+
+/* --------------------------------------------------------------------------
+   Hero two-column layout
+-------------------------------------------------------------------------- */
+.hero-cols {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (max-width: 1100px) {
+  .hero-cols { grid-template-columns: 1fr 360px; gap: 2.5rem; }
+}
+
+@media (max-width: 860px) {
+  .hero-cols { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Process tree visual
+-------------------------------------------------------------------------- */
+.hero-visual {
+  position: relative;
+  z-index: 1;
+}
+
+.process-tree {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+.ptree__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.ptree__label {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.ptree__live {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: #4ade80;
+}
+
+.ptree__live--go { color: var(--cyan); }
+
+.ptree__pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pip-pulse 2s ease-in-out infinite;
+}
+
+.ptree__pip--go {
+  background: var(--cyan);
+}
+
+.ptree__body {
+  padding: 0.85rem 1rem;
+}
+
+.ptree__divider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Tree nodes */
+.ptree__node {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0;
+  line-height: 1.4;
+}
+
+.ptree__children {
+  padding-left: 0.5rem;
+}
+
+.ptree__grandchildren {
+  padding-left: 1.4rem;
+}
+
+.ptree__connector {
+  color: var(--text-dim);
+  opacity: 0.4;
+  letter-spacing: -0.05em;
+  flex-shrink: 0;
+}
+
+.ptree__icon {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+
+.ptree__node--root .ptree__icon    { color: var(--purple); }
+.ptree__node--sup  .ptree__icon    { color: var(--text-dim); }
+
+.ptree__name {
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ptree__pid {
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
+.ptree__tag {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0.1em 0.4em;
+  flex-shrink: 0;
+}
+
+.ptree__tag--warn {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Status indicators */
+.ptree__status {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  width: 12px;
+  text-align: center;
+}
+
+.ptree__status--alive {
+  color: #4ade80;
+  animation: status-alive 3s ease-in-out infinite;
+}
+
+.ptree__status--restarting {
+  color: #f59e0b;
+  display: inline-block;
+  animation: status-spin 1s linear infinite;
+}
+
+/* Stagger the alive pulses so they don't all blink together */
+.ptree__node--delay-1 .ptree__status--alive { animation-delay: 0.8s; }
+.ptree__node--delay-2 .ptree__status--alive { animation-delay: 1.6s; }
+
+@keyframes status-alive {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@keyframes status-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   Goroutine pool grid
+-------------------------------------------------------------------------- */
+.goroutine-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 0.6rem;
+}
+
+.goroutine-slot {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.goroutine-slot--run {
+  background: var(--cyan);
+  opacity: 0.8;
+  animation: goroutine-run 2s ease-in-out infinite;
+}
+
+.goroutine-slot--sleep {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.goroutine-slot--sm {
+  width: 8px;
+  height: 8px;
+  animation: none !important;
+}
+
+/* Stagger goroutine animations */
+.goroutine-slot--d0 { animation-delay: 0s; }
+.goroutine-slot--d1 { animation-delay: 0.25s; }
+.goroutine-slot--d2 { animation-delay: 0.5s; }
+.goroutine-slot--d3 { animation-delay: 0.75s; }
+.goroutine-slot--d4 { animation-delay: 1s; }
+.goroutine-slot--d5 { animation-delay: 1.25s; }
+.goroutine-slot--d6 { animation-delay: 1.5s; }
+.goroutine-slot--d7 { animation-delay: 1.75s; }
+
+@keyframes goroutine-run {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 0.3; }
+}
+
+.goroutine-legend {
+  display: flex;
+  gap: 1rem;
+}
+
+.goroutine-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}

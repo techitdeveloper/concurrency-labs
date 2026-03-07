@@ -7,11 +7,11 @@ defmodule ConcurrencyLabs.HomeContent do
   @external_resource @content_path
   @content @content_path |> File.read!() |> Code.eval_string() |> elem(0)
 
-  def hero,          do: @content.hero
-  def hero_stats,    do: @content.hero_stats
-  def what_this_is,  do: @content.what_this_is
-  def labs,          do: @content.labs
-  def work,          do: @content.work
-  def about,         do: @content.about
-  def hire,          do: @content.hire
+  def hero, do: @content.hero
+  def hero_stats, do: @content.hero_stats
+  def what_this_is, do: @content.what_this_is
+  def labs, do: @content.labs
+  def work, do: @content.work
+  def about, do: @content.about
+  def hire, do: @content.hire
 end

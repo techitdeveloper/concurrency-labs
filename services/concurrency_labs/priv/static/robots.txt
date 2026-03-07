@@ -1,5 +1,9 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
-#
-# To ban all spiders from the entire site uncomment the next two lines:
-# User-agent: *
-# Disallow: /
+# robots.txt
+# Place at: priv/static/robots.txt
+
+User-agent: *
+Allow: /
+
+# Disallow nothing — all pages are public and indexable
+
+Sitemap: https://concurrency-labs.fly.dev/sitemap.xml

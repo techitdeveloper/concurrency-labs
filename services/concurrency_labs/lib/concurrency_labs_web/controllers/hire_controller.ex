@@ -12,9 +12,9 @@ defmodule ConcurrencyLabsWeb.HireController do
     |> assign(:page_title, "Hire Me")
     |> assign(:page_description, h.positioning)
     |> render(:index,
-        hire:    h,
-        work:    HomeContent.work(),
-        labs:    HomeContent.labs()
-      )
+      hire: h,
+      work: HomeContent.work(),
+      labs: HomeContent.labs()
+    )
   end
 end

@@ -6,11 +6,7 @@
 defmodule ConcurrencyLabsWeb.BlogHTML do
   use ConcurrencyLabsWeb, :html
 
-  embed_templates "blog_html/*"
+  import ConcurrencyLabsWeb.Helpers.Utils
 
-  # Shared helper used in both templates
-  def format_date(%Date{} = d) do
-    month = ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) |> Enum.at(d.month - 1)
-    "#{month} #{d.day}, #{d.year}"
-  end
+  embed_templates "blog_html/*"
 end

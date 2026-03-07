@@ -1,94 +1,82 @@
 <%!-- lib/concurrency_labs_web/controllers/hire_html/index.html.heex --%>
-
 <div class="hire-page">
-
-  <%!-- ================================================================
-       HEADER — headline + positioning
-       ================================================================ --%>
   <header class="hire-header">
     <div class="hire-header__inner">
       <div class="hire-header__left">
         <span class="hire-eyebrow">// available for work</span>
-        <h1 class="hire-title"><%= @hire.headline %></h1>
-        <p class="hire-positioning"><%= @hire.positioning %></p>
+        <h1 class="hire-title">{@hire.headline}</h1>
+        
+        <p class="hire-positioning">{@hire.positioning}</p>
       </div>
-
+      
       <div class="hire-header__right">
         <div class={"availability-badge availability-badge--#{@hire.availability.status}"}>
-          <span class="availability-badge__pip"></span>
-          <%= @hire.availability.label %>
+          <span class="availability-badge__pip"></span> {@hire.availability.label}
         </div>
       </div>
     </div>
   </header>
-
+  
   <div class="hire-body">
-
-    <%!-- ================================================================
-         WHAT I CAN HELP WITH
-         ================================================================ --%>
     <section class="hire-section" aria-labelledby="help-heading">
       <div class="hire-section__label">
         <span class="hire-section__eyebrow">01</span>
         <h2 class="hire-section__title" id="help-heading">What I can help with</h2>
       </div>
-
+      
       <div class="hire-section__content">
         <div class="help-grid">
           <%= for item <- @hire.can_help_with do %>
             <div class="help-item">
-              <h3 class="help-item__area"><%= item.area %></h3>
-              <p class="help-item__detail"><%= item.detail %></p>
+              <h3 class="help-item__area">{item.area}</h3>
+              
+              <p class="help-item__detail">{item.detail}</p>
             </div>
           <% end %>
         </div>
       </div>
     </section>
-
-    <%!-- ================================================================
-         EXPERIENCE
-         ================================================================ --%>
+    
     <section class="hire-section" aria-labelledby="exp-heading">
       <div class="hire-section__label">
         <span class="hire-section__eyebrow">02</span>
         <h2 class="hire-section__title" id="exp-heading">Experience</h2>
       </div>
-
+      
       <div class="hire-section__content">
         <div class="exp-block">
           <div class="exp-years">
-            <span class="exp-years__value"><%= @hire.experience.years %></span>
+            <span class="exp-years__value">{@hire.experience.years}</span>
             <span class="exp-years__label">years</span>
           </div>
+          
           <div class="exp-detail">
-            <p class="exp-summary"><%= @hire.experience.summary %></p>
+            <p class="exp-summary">{@hire.experience.summary}</p>
+            
             <ul class="exp-highlights">
               <%= for h <- @hire.experience.highlights do %>
-                <li><%= h %></li>
+                <li>{h}</li>
               <% end %>
             </ul>
           </div>
         </div>
       </div>
     </section>
-
-    <%!-- ================================================================
-         SKILLS
-         ================================================================ --%>
+    
     <section class="hire-section" aria-labelledby="skills-heading">
       <div class="hire-section__label">
         <span class="hire-section__eyebrow">03</span>
         <h2 class="hire-section__title" id="skills-heading">Technical skills</h2>
       </div>
-
+      
       <div class="hire-section__content">
         <div class="skills-grid">
           <%= for group <- @hire.skills do %>
             <div class="skill-group">
-              <span class="skill-group__category"><%= group.category %></span>
+              <span class="skill-group__category">{group.category}</span>
               <div class="skill-group__items">
                 <%= for item <- group.items do %>
-                  <span class="skill-tag"><%= item %></span>
+                  <span class="skill-tag">{item}</span>
                 <% end %>
               </div>
             </div>
@@ -96,85 +84,122 @@
         </div>
       </div>
     </section>
-
-    <%!-- ================================================================
-         SELECTED WORK
-         ================================================================ --%>
+    
     <section class="hire-section" aria-labelledby="work-heading">
       <div class="hire-section__label">
         <span class="hire-section__eyebrow">04</span>
         <h2 class="hire-section__title" id="work-heading">Selected work</h2>
       </div>
-
+      
       <div class="hire-section__content">
         <div class="hire-work-list">
           <%= for entry <- @work do %>
             <article class="hire-work-card">
               <div class="hire-work-card__top">
                 <div class="hire-work-card__meta">
-                  <h3 class="hire-work-card__title"><%= entry.title %></h3>
-                  <span class="work-card__constraint"><%= entry.constraint %></span>
+                  <h3 class="hire-work-card__title">{entry.title}</h3>
+                   <span class="work-card__constraint">{entry.constraint}</span>
                 </div>
+                
                 <div class="work-card__stack">
                   <%= for tech <- entry.stack do %>
-                    <span class="work-stack-tag"><%= tech %></span>
+                    <span class="work-stack-tag">{tech}</span>
                   <% end %>
                 </div>
               </div>
-              <p class="hire-work-card__desc"><%= String.trim(entry.description) %></p>
+              
+              <p class="hire-work-card__desc">{String.trim(entry.description)}</p>
+              
               <p class="hire-work-card__owned">
-                <span class="work-card__owned-label">owned:</span>
-                <%= entry.what_i_owned %>
+                <span class="work-card__owned-label">owned:</span> {entry.what_i_owned}
               </p>
             </article>
           <% end %>
         </div>
-
-        <%!-- Labs callout --%>
+        
         <div class="labs-callout">
           <p class="labs-callout__text">
             The concurrency labs on this site are also production-quality work —
             real supervised processes and goroutines, live metrics, per-session isolation.
           </p>
+          
           <div class="labs-callout__links">
             <a href="/elixir-concurrency" class="labs-callout__link labs-callout__link--elixir">
-              <span class="hero-cta__dot" style="background: var(--purple)"></span>
-              <%= @labs.elixir.link_text %>
+              <span class="hero-cta__dot" style="background: var(--purple)"></span> {@labs.elixir.link_text}
             </a>
+            
             <a href="/go-concurrency" class="labs-callout__link labs-callout__link--go">
-              <span class="hero-cta__dot" style="background: var(--cyan)"></span>
-              <%= @labs.go.link_text %>
+              <span class="hero-cta__dot" style="background: var(--cyan)"></span> {@labs.go.link_text}
             </a>
           </div>
         </div>
       </div>
     </section>
-
-    <%!-- ================================================================
-         AVAILABILITY + CONTACT
-         ================================================================ --%>
+    
     <section class="hire-section hire-section--last" aria-labelledby="contact-heading">
       <div class="hire-section__label">
         <span class="hire-section__eyebrow">05</span>
         <h2 class="hire-section__title" id="contact-heading">Get in touch</h2>
       </div>
-
+      
       <div class="hire-section__content">
         <div class="contact-block">
           <div class="contact-block__availability">
-            <p class="contact-avail__detail"><%= @hire.availability.detail %></p>
-            <p class="contact-avail__pref"><%= @hire.availability.preference %></p>
+            <p class="contact-avail__detail">{@hire.availability.detail}</p>
+            
+            <p class="contact-avail__pref">{@hire.availability.preference}</p>
           </div>
-
+          
           <div class="contact-block__actions">
-            <a
-              href={"mailto:#{@hire.contact.email}"}
-              class="contact-btn contact-btn--primary"
-            >
-              <%= @hire.contact.email %>
-              <span>↗</span>
-            </a>
-
+            <%!-- Email: mailto + copy button --%>
+            <div class="contact-btn-row">
+              <a
+                href={"mailto:#{@hire.contact.email}"}
+                class="contact-btn contact-btn--primary contact-btn--grow"
+              >
+                {@hire.contact.email} <span>↗</span>
+              </a>
+              
+              <button
+                class="copy-btn copy-btn--standalone"
+                data-copy={@hire.contact.email}
+                aria-label="Copy email address"
+                title="Copy email"
+              >
+                <span class="copy-btn__icon copy-btn__icon--copy">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </span>
+                
+                <span class="copy-btn__icon copy-btn__icon--check" style="display:none">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
+              </button>
+            </div>
+            
             <a
               href={@hire.contact.github}
               class="contact-btn"
@@ -183,16 +208,13 @@
             >
               GitHub ↗
             </a>
-
+            
             <%= if @hire.contact.resume do %>
-              <a href={@hire.contact.resume} class="contact-btn" target="_blank">
-                Résumé / CV ↗
-              </a>
+              <a href={@hire.contact.resume} class="contact-btn" target="_blank">Résumé / CV ↗</a>
             <% end %>
           </div>
         </div>
       </div>
     </section>
-
   </div>
 </div>

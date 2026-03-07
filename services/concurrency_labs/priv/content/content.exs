@@ -116,6 +116,7 @@
   ],
 
   about: %{
+    contact_email: "indreeshpandey@gmail.com",
     summary: [
       """
       Backend engineer with 5+ years building concurrent, fault-tolerant
@@ -131,7 +132,7 @@
     ],
     links: [
       %{label: "GitHub",  href: "https://github.com/techitdeveloper/concurrency-labs", external: true},
-      %{label: "Email",   href: "mailto:indreeshpandey@gmail.com",                      external: false},
+      # %{label: "Email",   href: "mailto:indreeshpandey@gmail.com",                      external: true},
       %{label: "Hire Me", href: "/hire",                                                external: false, primary: true}
     ]
   },
@@ -191,7 +192,7 @@
     ],
 
     availability: %{
-      status: "open",
+      status: "open", #"open" to "limited" or "unavailable"
       label: "Available now",
       detail: "Open to full-time remote/on-site roles. Can discuss contract engagements for well-scoped projects.",
       preference: "Strong preference for teams using Elixir/OTP or Go in production."
@@ -200,7 +201,7 @@
     contact: %{
       email: "indreeshpandey@gmail.com",
       github: "https://github.com/techitdeveloper",
-      resume: nil
+      resume: "https://docs.google.com/document/d/17WIUmFZvqxzzVw6xhK5B5-i-SJPrw1MR6OiCXmUENTY/edit?usp=drive_link"
     }
   }
 }

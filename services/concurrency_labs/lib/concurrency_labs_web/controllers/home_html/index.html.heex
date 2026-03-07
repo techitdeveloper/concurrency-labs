@@ -1,4 +1,5 @@
 <%!-- lib/concurrency_labs_web/controllers/home_html/index.html.heex --%>
+
 <%!-- ===================================================================
      HERO
      =================================================================== --%>
@@ -9,42 +10,136 @@
         <span class="hero-grid__dot"></span>
       <% end %>
     </div>
-    
-    <div class="home-hero__content">
-      <div class="hero-kicker">
-        <span class="hero-kicker__line"></span>
-        <span class="hero-kicker__text">{@hero.kicker}</span>
-      </div>
-      
-      <h1 class="hero-title">
-        <%= for line <- @hero.headline do %>
-          <%= if line == @hero.headline_accent do %>
-            <span class="hero-title__accent">{line}</span>
-          <% else %>
-            {line}<br />
+
+    <div class="hero-cols">
+      <%!-- LEFT --%>
+      <div class="home-hero__content">
+        <div class="hero-kicker">
+          <span class="hero-kicker__line"></span>
+          <span class="hero-kicker__text">{@hero.kicker}</span>
+        </div>
+
+        <h1 class="hero-title">
+          <%= for line <- @hero.headline do %>
+            <%= if line == @hero.headline_accent do %>
+              <span class="hero-title__accent">{line}</span>
+            <% else %>
+              {line}<br />
+            <% end %>
           <% end %>
-        <% end %>
-      </h1>
-      
-      <p class="hero-sub">{String.trim(@hero.subheadline)}</p>
-      
-      <div class="hero-ctas">
-        <a href="/elixir-concurrency" class="hero-cta hero-cta--elixir">
-          <span class="hero-cta__dot"></span> {@labs.elixir.link_text}
-        </a>
-        
-        <a href="/go-concurrency" class="hero-cta hero-cta--go">
-          <span class="hero-cta__dot"></span> {@labs.go.link_text}
-        </a>
+        </h1>
+
+        <p class="hero-sub">{String.trim(@hero.subheadline)}</p>
+
+        <div class="hero-ctas">
+          <a href="/elixir-concurrency" class="hero-cta hero-cta--elixir">
+            <span class="hero-cta__dot"></span>
+            {@labs.elixir.link_text}
+          </a>
+          <a href="/go-concurrency" class="hero-cta hero-cta--go">
+            <span class="hero-cta__dot"></span>
+            {@labs.go.link_text}
+          </a>
+        </div>
+      </div>
+
+      <%!-- RIGHT: supervision tree + goroutine pool --%>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="process-tree">
+          <div class="ptree__header">
+            <span class="ptree__label">BEAM supervision tree</span>
+            <span class="ptree__live">
+              <span class="ptree__pip"></span>live
+            </span>
+          </div>
+
+          <div class="ptree__body">
+            <div class="ptree__node ptree__node--root">
+              <span class="ptree__icon">◆</span>
+              <span class="ptree__name">ConcurrencyLabs.Application</span>
+            </div>
+            <div class="ptree__children">
+              <div class="ptree__branch">
+                <div class="ptree__node ptree__node--sup">
+                  <span class="ptree__connector">└──</span>
+                  <span class="ptree__icon">▣</span>
+                  <span class="ptree__name">SessionDynSup</span>
+                  <span class="ptree__tag">DynamicSupervisor</span>
+                </div>
+                <div class="ptree__grandchildren">
+                  <div class="ptree__node ptree__node--worker ptree__node--alive">
+                    <span class="ptree__connector">├──</span>
+                    <span class="ptree__status ptree__status--alive">●</span>
+                    <span class="ptree__name">DotProcess <span class="ptree__pid">#1</span></span>
+                  </div>
+                  <div class="ptree__node ptree__node--worker ptree__node--alive ptree__node--delay-1">
+                    <span class="ptree__connector">├──</span>
+                    <span class="ptree__status ptree__status--alive">●</span>
+                    <span class="ptree__name">DotProcess <span class="ptree__pid">#2</span></span>
+                  </div>
+                  <div class="ptree__node ptree__node--worker ptree__node--restarting">
+                    <span class="ptree__connector">├──</span>
+                    <span class="ptree__status ptree__status--restarting">↻</span>
+                    <span class="ptree__name">DotProcess <span class="ptree__pid">#3</span></span>
+                    <span class="ptree__tag ptree__tag--warn">restarting</span>
+                  </div>
+                  <div class="ptree__node ptree__node--worker ptree__node--alive ptree__node--delay-2">
+                    <span class="ptree__connector">└──</span>
+                    <span class="ptree__status ptree__status--alive">●</span>
+                    <span class="ptree__name">DotProcess <span class="ptree__pid">#4</span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="ptree__branch">
+                <div class="ptree__node ptree__node--sup">
+                  <span class="ptree__connector">└──</span>
+                  <span class="ptree__icon">▣</span>
+                  <span class="ptree__name">MetricsCollector</span>
+                  <span class="ptree__tag">GenServer</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ptree__divider"></div>
+
+          <div class="ptree__header">
+            <span class="ptree__label">Go goroutine pool</span>
+            <span class="ptree__live ptree__live--go">
+              <span class="ptree__pip ptree__pip--go"></span>live
+            </span>
+          </div>
+
+          <div class="ptree__body">
+            <div class="goroutine-row">
+              <%= for {state, i} <- Enum.with_index([
+                :run, :run, :sleep, :run, :sleep, :run, :run, :sleep,
+                :run, :sleep, :run, :run, :run, :sleep, :run, :run
+              ]) do %>
+                <span class={"goroutine-slot goroutine-slot--#{state} goroutine-slot--d#{rem(i, 8)}"}>
+                </span>
+              <% end %>
+            </div>
+            <div class="goroutine-legend">
+              <span class="goroutine-legend__item">
+                <span class="goroutine-slot goroutine-slot--run goroutine-slot--sm"></span>
+                running
+              </span>
+              <span class="goroutine-legend__item">
+                <span class="goroutine-slot goroutine-slot--sleep goroutine-slot--sm"></span>
+                sleeping
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    
+
     <div class="hero-stats" aria-hidden="true">
       <%= for {stat, i} <- Enum.with_index(@hero_stats) do %>
         <%= if i > 0 do %>
           <div class="hero-stat__sep"></div>
         <% end %>
-        
         <div class="hero-stat">
           <span class="hero-stat__value">{stat.value}</span>
           <span class="hero-stat__label">{stat.label}</span>
@@ -61,11 +156,8 @@
   <div class="home-section__inner home-section__inner--prose">
     <header class="section-header">
       <span class="section-eyebrow">// what this is</span>
-      <h2 class="section-title" id="about-heading">
-        {@what_this_is.title}
-      </h2>
+      <h2 class="section-title" id="about-heading">{@what_this_is.title}</h2>
     </header>
-    
     <div class="prose-cols">
       <%= for para <- @what_this_is.paragraphs do %>
         <p>{String.trim(para)}</p>
@@ -75,7 +167,7 @@
 </section>
 
 <%!-- ===================================================================
-     WHAT YOU'LL SEE — LAB CARDS
+     LAB CARDS
      =================================================================== --%>
 <section class="home-section home-section--alt" aria-labelledby="labs-heading">
   <div class="home-section__inner">
@@ -83,41 +175,25 @@
       <span class="section-eyebrow">// the labs</span>
       <h2 class="section-title" id="labs-heading">What the experiments show</h2>
     </header>
-    
     <div class="labs-grid">
       <article class="lab-card lab-card--elixir">
         <div class="lab-card__header">
-          <span class="lab-card__badge lab-card__badge--elixir">
-            {@labs.elixir.badge}
-          </span>
-          
-          <a href="/elixir-concurrency" class="lab-card__link">
-            {@labs.elixir.link_text}
-          </a>
+          <span class="lab-card__badge lab-card__badge--elixir">{@labs.elixir.badge}</span>
+          <a href="/elixir-concurrency" class="lab-card__link">{@labs.elixir.link_text}</a>
         </div>
-        
         <h3 class="lab-card__title">{@labs.elixir.title}</h3>
-        
         <ul class="lab-card__points">
           <%= for point <- @labs.elixir.points do %>
             <li>{point}</li>
           <% end %>
         </ul>
       </article>
-      
       <article class="lab-card lab-card--go">
         <div class="lab-card__header">
-          <span class="lab-card__badge lab-card__badge--go">
-            {@labs.go.badge}
-          </span>
-          
-          <a href="/go-concurrency" class="lab-card__link">
-            {@labs.go.link_text}
-          </a>
+          <span class="lab-card__badge lab-card__badge--go">{@labs.go.badge}</span>
+          <a href="/go-concurrency" class="lab-card__link">{@labs.go.link_text}</a>
         </div>
-        
         <h3 class="lab-card__title">{@labs.go.title}</h3>
-        
         <ul class="lab-card__points">
           <%= for point <- @labs.go.points do %>
             <li>{point}</li>
@@ -137,25 +213,21 @@
       <span class="section-eyebrow">// selected work</span>
       <h2 class="section-title" id="work-heading">Production systems</h2>
     </header>
-    
     <div class="work-list">
       <%= for entry <- @work do %>
         <article class="work-card">
           <div class="work-card__index">{entry.index}</div>
-          
           <div class="work-card__body">
             <div class="work-card__top">
               <h3 class="work-card__title">{entry.title}</h3>
-               <span class="work-card__constraint">{entry.constraint}</span>
+              <span class="work-card__constraint">{entry.constraint}</span>
             </div>
-            
             <p class="work-card__desc">{String.trim(entry.description)}</p>
-            
             <div class="work-card__footer">
               <span class="work-card__owned">
-                <span class="work-card__owned-label">owned:</span> {entry.what_i_owned}
+                <span class="work-card__owned-label">owned:</span>
+                {entry.what_i_owned}
               </span>
-              
               <div class="work-card__stack">
                 <%= for tech <- entry.stack do %>
                   <span class="work-stack-tag">{tech}</span>
@@ -180,9 +252,8 @@
           <span class="section-eyebrow">// writing</span>
           <h2 class="section-title" id="writing-heading">Recent posts</h2>
         </div>
-         <a href="/blog" class="section-more">All posts →</a>
+        <a href="/blog" class="section-more">All posts →</a>
       </header>
-      
       <div class="home-posts">
         <%= for post <- @recent_posts do %>
           <article class="home-post">
@@ -190,16 +261,12 @@
               <time datetime={Date.to_iso8601(post.date)} class="home-post__date">
                 {format_date(post.date)}
               </time>
-               <span class="home-post__sep">·</span>
+              <span class="home-post__sep">·</span>
               <span class="home-post__reading-time">{post.reading_time_min} min</span>
             </div>
-            
             <h3 class="home-post__title">
-              <a href={"/blog/#{post.id}"} class="home-post__link">
-                {post.title}
-              </a>
+              <a href={"/blog/#{post.id}"} class="home-post__link">{post.title}</a>
             </h3>
-            
             <p class="home-post__desc">{post.description}</p>
           </article>
         <% end %>
@@ -217,15 +284,57 @@
       <span class="section-eyebrow">// contact</span>
       <h2 class="section-title" id="contact-heading">Work together</h2>
     </header>
-    
     <div class="about-block">
       <div class="about-block__bio">
         <%= for para <- @about.summary do %>
           <p>{String.trim(para)}</p>
         <% end %>
       </div>
-      
       <div class="about-block__links">
+        <%!-- Email row — mailto + copy button --%>
+        <div class="about-link about-link--email-row">
+          <a href={"mailto:#{@about.contact_email}"} class="about-link__mailto">
+            <span class="about-link__label">{@about.contact_email}</span>
+            <span class="about-link__arrow">↗</span>
+          </a>
+          <button
+            class="copy-btn"
+            data-copy={@about.contact_email}
+            aria-label="Copy email address"
+            title="Copy email"
+          >
+            <span class="copy-btn__icon copy-btn__icon--copy">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </span>
+            <span class="copy-btn__icon copy-btn__icon--check" style="display:none">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+          </button>
+        </div>
+
         <%= for link <- @about.links do %>
           <a
             href={link.href}

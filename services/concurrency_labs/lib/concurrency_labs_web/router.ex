@@ -15,6 +15,10 @@ defmodule ConcurrencyLabsWeb.Router do
   end
 
   scope "/", ConcurrencyLabsWeb do
+    get "/sitemap.xml", SitemapController, :index
+  end
+
+  scope "/", ConcurrencyLabsWeb do
     pipe_through :browser
 
     # get "/", PageController, :home
