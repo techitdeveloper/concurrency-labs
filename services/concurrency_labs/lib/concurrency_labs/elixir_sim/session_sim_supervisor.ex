@@ -2,16 +2,12 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
   @moduledoc """
   Per-session DynamicSupervisor. Manages DotProcesses for one browser tab.
   Scoped by session_id — process names include session_id to avoid clashes.
+  All sizing constants come from ElixirSim.Config.
   """
 
   use DynamicSupervisor
 
-  alias ConcurrencyLabs.ElixirSim.{Session, DotProcess}
-
-  @initial_count 10
-  @max_count 500
-  @stress_batch 20
-  @stress_batch_delay 80
+  alias ConcurrencyLabs.ElixirSim.{Config, Session, DotProcess}
 
   def start_link(opts) do
     session_id = Keyword.fetch!(opts, :session_id)
@@ -32,15 +28,18 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
   # --- Public API (all take session_id) ------------------------------------
 
   def seed(session_id) do
-    for id <- 0..(@initial_count - 1) do
+    cfg = Config.get()
+
+    for id <- 0..(cfg.initial_count - 1) do
       start_process(session_id, id, restarted: false)
     end
   end
 
   def spawn_one(session_id) do
+    cfg = Config.get()
     id = next_id(session_id)
 
-    if id >= @max_count do
+    if id >= cfg.max_count do
       :max_reached
     else
       start_process(session_id, id, restarted: false)
@@ -73,7 +72,7 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
       ConcurrencyLabs.ElixirSim.SessionSimManager.schedule_respawn(
         session_id,
         id,
-        1_200
+        Config.get(:restart_delay_ms)
       )
     end)
 
@@ -81,19 +80,20 @@ defmodule ConcurrencyLabs.ElixirSim.SessionSimSupervisor do
   end
 
   def stress_test(session_id) do
+    cfg = Config.get()
     current = length(process_ids(session_id))
-    to_spawn = min(490, @max_count - current)
+    to_spawn = min(cfg.max_count - 10, cfg.max_count - current)
     start_id = next_id(session_id)
 
     Task.start(fn ->
       0..(to_spawn - 1)
-      |> Enum.chunk_every(@stress_batch)
+      |> Enum.chunk_every(cfg.stress_batch)
       |> Enum.each(fn batch ->
         for i <- batch do
           start_process(session_id, start_id + i, restarted: false)
         end
 
-        Process.sleep(@stress_batch_delay)
+        Process.sleep(cfg.stress_batch_delay_ms)
       end)
     end)
 

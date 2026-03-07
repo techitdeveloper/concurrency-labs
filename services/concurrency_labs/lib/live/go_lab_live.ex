@@ -1,11 +1,11 @@
 defmodule ConcurrencyLabsWeb.GoLabLive do
   use ConcurrencyLabsWeb, :live_view
 
-  @go_ws_url Application.compile_env(
-               :concurrency_labs,
-               :go_ws_url,
-               "ws://localhost:4001/ws"
-             )
+  # Application.compile_env bakes the value in at compile time — wrong for Fly.io
+  # where the URL is only known at runtime. We read it in mount/3 instead.
+  defp go_ws_url do
+    Application.get_env(:concurrency_labs, :go_ws_url, "ws://localhost:4001/ws")
+  end
 
   @impl true
   def mount(_params, _session, socket) do
@@ -17,7 +17,7 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
       |> assign(:stack_inuse_kb, 0)
       |> assign(:num_goroutine, 0)
       |> assign(:num_gc_cycles, 0)
-      |> assign(:go_ws_url, @go_ws_url)
+      |> assign(:go_ws_url, go_ws_url())
       |> assign(:connected, false)
 
     {:ok, socket}
@@ -60,20 +60,20 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
         <div class="lab-header__left">
           <span class="lab-badge">GO RUNTIME</span>
           <h1 class="lab-title">Goroutine Simulation</h1>
-          
+
           <p class="lab-subtitle">
             Each dot owns a goroutine. Collisions spawn new ones.
             Watch Go's heap respond in real time.
           </p>
         </div>
-        
+
         <div class="lab-header__right">
           <div class={"status-pill #{if @connected, do: "status-pill--live", else: "status-pill--offline"}"}>
             <span class="status-pip"></span> {if @connected, do: "LIVE", else: "CONNECTING…"}
           </div>
         </div>
       </header>
-      
+
       <div class="lab-body">
         <section class="sim-panel" aria-label="Goroutine simulation">
           <div class="panel-header">
@@ -82,7 +82,7 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               <span id="dot-count-display">{@dot_count}</span> dots
             </span>
           </div>
-          
+
           <div id="go-sim-hook" phx-hook="GoSimulation" data-ws-url={@go_ws_url}>
             <div id="go-sim-canvas-area" phx-update="ignore" class="canvas-wrapper">
               <canvas id="sim-canvas"></canvas>
@@ -91,66 +91,66 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               </div>
             </div>
           </div>
-          
+
           <div class="sim-controls">
             <button phx-click="spawn_dot" class="btn btn--primary">
               + Spawn Goroutine
             </button>
-            
+
             <button phx-click="reset" class="btn btn--ghost">
               ↺ Reset
             </button>
           </div>
         </section>
-        
+
         <section class="metrics-panel" aria-label="Go runtime memory metrics">
           <div class="panel-header">
             <span class="panel-label">MEMORY</span>
             <span class="panel-label panel-label--dim">runtime.MemStats</span>
           </div>
-          
+
           <div class="stat-grid">
             <div class="stat-card">
               <span class="stat-label">Heap Alloc</span>
               <span class="stat-value">{format_kb(@heap_alloc_kb)}</span>
             </div>
-            
+
             <div class="stat-card">
               <span class="stat-label">Heap Sys</span>
               <span class="stat-value">{format_kb(@heap_sys_kb)}</span>
             </div>
-            
+
             <div class="stat-card">
               <span class="stat-label">Stack In-Use</span>
               <span class="stat-value">{format_kb(@stack_inuse_kb)}</span>
             </div>
-            
+
             <div class="stat-card">
               <span class="stat-label">Total Goroutines</span>
               <span class="stat-value">{@num_goroutine}</span>
             </div>
           </div>
-          
+
           <div class="chart-container">
             <div class="chart-header">
               <span class="chart-title">Heap Allocation Over Time</span>
               <span class="chart-unit">KB</span>
             </div>
-             <canvas id="memory-chart" phx-hook="MemoryChart" phx-update="ignore"></canvas>
+            <canvas id="memory-chart" phx-hook="MemoryChart" phx-update="ignore"></canvas>
           </div>
-          
+
           <div class="metrics-footer">
             <div class="footer-row">
               <span class="footer-label">Simulation dots</span>
               <span class="footer-value">{@dot_count}</span>
             </div>
-            
+
             <div class="footer-row">
               <span class="footer-label">GC cycles</span>
               <span class="footer-value">{@num_gc_cycles}</span>
             </div>
           </div>
-          
+
           <p class="metrics-disclaimer">
             <strong>Total Goroutines</strong> is process-wide —
             includes Go internals, the HTTP server, and one goroutine
@@ -159,7 +159,9 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
           </p>
         </section>
       </div>
-       <%!-- Explanation section --%> <.explanation />
+
+      <%!-- Explanation section --%>
+      <.explanation />
     </div>
     """
   end
@@ -175,20 +177,18 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
         <header class="explainer__header">
           <span class="explainer__eyebrow">// technical notes</span>
           <h2 class="explainer__title">How this works</h2>
-          
+
           <p class="explainer__lead">
             This is a real Go service running live on the server — not an animation.
             Every dot you see corresponds to an actual goroutine executing concurrently
             inside the Go runtime.
           </p>
         </header>
-        
+
         <div class="explainer__grid">
           <article class="explainer__card">
             <div class="card__index">01</div>
-            
             <h3 class="card__title">The Simulation</h3>
-            
             <p class="card__body">
               The Go service spawns <code>N</code> goroutines on startup (default: 50).
               Each goroutine owns a dot and waits for a tick signal every 33ms (~30fps).
@@ -197,12 +197,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               is spawned at the collision midpoint, growing the simulation organically.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">02</div>
-            
             <h3 class="card__title">Fan-out / Fan-in</h3>
-            
             <p class="card__body">
               The engine uses a classic Go concurrency pattern. Each tick it fans out
               a signal to all dot goroutines via buffered channels, then fans in their
@@ -211,12 +209,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               M:N runtime scheduler. You're watching the scheduler work.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">03</div>
-            
             <h3 class="card__title">Memory Graph</h3>
-            
             <p class="card__body">
               The graph plots <code>HeapAlloc</code> from <code>runtime.MemStats</code>,
               sampled every second. As dot count grows, heap allocation rises because
@@ -225,12 +221,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               collector runs — watch it tick up as allocation pressure increases.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">04</div>
-            
             <h3 class="card__title">Per-Session Isolation</h3>
-            
             <p class="card__body">
               Each browser tab gets a completely independent simulation. When you open
               this page, the Go server creates a fresh engine with its own goroutines.
@@ -239,12 +233,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               have zero shared state between them.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">05</div>
-            
             <h3 class="card__title">Collision Cooldown</h3>
-            
             <p class="card__body">
               After a collision, both parent dots and the newly spawned child are marked
               immune for 500ms. Without this, a newly spawned dot starting near its
@@ -253,12 +245,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               collisions are observable events, not instant cascades.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">06</div>
-            
             <h3 class="card__title">What's Not Measured</h3>
-            
             <p class="card__body">
               <code>HeapAlloc</code> is process-wide, not per-goroutine — Go provides
               no per-goroutine memory attribution. <code>NumGoroutine</code> includes
@@ -268,12 +258,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               of <code>runtime.MemStats</code>, not bugs.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">07</div>
-            
             <h3 class="card__title">Phoenix + LiveView Bridge</h3>
-            
             <p class="card__body">
               The frontend is a Phoenix LiveView application. A JavaScript hook opens
               a direct WebSocket to the Go service at <code>/ws</code>, receives dot
@@ -283,12 +271,10 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
               stat cards are server-rendered and SEO-visible.
             </p>
           </article>
-          
+
           <article class="explainer__card">
             <div class="card__index">08</div>
-            
             <h3 class="card__title">Tradeoffs &amp; Limits</h3>
-            
             <p class="card__body">
               Collision detection is O(n²) — comparing every dot pair each tick.
               This is intentional: it's fast enough for 1000 dots at 30fps (~500K
@@ -298,7 +284,7 @@ defmodule ConcurrencyLabsWeb.GoLabLive do
             </p>
           </article>
         </div>
-        
+
         <footer class="explainer__footer">
           <div class="explainer__stack">
             <span class="stack-item">Go 1.22</span> <span class="stack-sep">·</span>

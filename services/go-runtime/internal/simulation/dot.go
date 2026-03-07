@@ -7,14 +7,17 @@ import (
 	"time"
 )
 
-const (
-	DotRadius    = 6.0
-	CanvasWidth  = 1000.0
-	CanvasHeight = 750.0
-
-	CollisionCooldown = 1000 * time.Millisecond
-	MinSpawnOffset    = DotRadius * 8
-)
+// DotConfig holds the physics parameters for dots.
+// The Engine populates this from config.Config so no magic numbers live here.
+type DotConfig struct {
+	Radius            float64
+	CanvasWidth       float64
+	CanvasHeight      float64
+	MinSpeed          float64
+	MaxSpeed          float64
+	CollisionCooldown time.Duration
+	SpawnOffsetMult   float64
+}
 
 // DotState is the serializable snapshot of a dot's position.
 // This — not *Dot — is what gets JSON-encoded and sent to the browser.
@@ -30,7 +33,8 @@ type DotState struct {
 
 // Dot is the live simulation object. Never JSON-encoded directly.
 type Dot struct {
-	mu sync.Mutex
+	mu  sync.Mutex
+	cfg DotConfig
 
 	ID             float64
 	X              float64
@@ -44,26 +48,29 @@ type Dot struct {
 	stopCh chan struct{}
 }
 
-func NewDot(id float64) *Dot {
-	x := DotRadius + rand.Float64()*(CanvasWidth-2*DotRadius)
-	y := DotRadius + rand.Float64()*(CanvasHeight-2*DotRadius)
-	return newDot(id, x, y)
+func NewDot(id float64, cfg DotConfig) *Dot {
+	x := cfg.Radius + rand.Float64()*(cfg.CanvasWidth-2*cfg.Radius)
+	y := cfg.Radius + rand.Float64()*(cfg.CanvasHeight-2*cfg.Radius)
+	return newDot(id, x, y, cfg)
 }
 
-func NewDotAt(id float64, x, y float64) *Dot {
+func NewDotAt(id float64, x, y float64, cfg DotConfig) *Dot {
 	angle := rand.Float64() * 2 * math.Pi
-	offset := MinSpawnOffset + rand.Float64()*MinSpawnOffset
-	spawnX := clamp(x+math.Cos(angle)*offset, DotRadius, CanvasWidth-DotRadius)
-	spawnY := clamp(y+math.Sin(angle)*offset, DotRadius, CanvasHeight-DotRadius)
-	d := newDot(id, spawnX, spawnY)
-	d.CollisionUntil = time.Now().Add(CollisionCooldown)
+	minOffset := cfg.Radius * cfg.SpawnOffsetMult
+	offset := minOffset + rand.Float64()*minOffset
+	spawnX := clamp(x+math.Cos(angle)*offset, cfg.Radius, cfg.CanvasWidth-cfg.Radius)
+	spawnY := clamp(y+math.Sin(angle)*offset, cfg.Radius, cfg.CanvasHeight-cfg.Radius)
+	d := newDot(id, spawnX, spawnY, cfg)
+	d.CollisionUntil = time.Now().Add(cfg.CollisionCooldown)
 	return d
 }
 
-func newDot(id, x, y float64) *Dot {
-	speed := 1.5 + rand.Float64()*2.5
+func newDot(id, x, y float64, cfg DotConfig) *Dot {
+	speedRange := cfg.MaxSpeed - cfg.MinSpeed
+	speed := cfg.MinSpeed + rand.Float64()*speedRange
 	angle := rand.Float64() * 2 * math.Pi
 	return &Dot{
+		cfg:    cfg,
 		ID:     id,
 		X:      x,
 		Y:      y,
@@ -110,18 +117,22 @@ func (d *Dot) move() {
 	d.X += d.VX
 	d.Y += d.VY
 
-	if d.X-DotRadius < 0 {
-		d.X = DotRadius
+	r := d.cfg.Radius
+	w := d.cfg.CanvasWidth
+	h := d.cfg.CanvasHeight
+
+	if d.X-r < 0 {
+		d.X = r
 		d.VX = math.Abs(d.VX)
-	} else if d.X+DotRadius > CanvasWidth {
-		d.X = CanvasWidth - DotRadius
+	} else if d.X+r > w {
+		d.X = w - r
 		d.VX = -math.Abs(d.VX)
 	}
-	if d.Y-DotRadius < 0 {
-		d.Y = DotRadius
+	if d.Y-r < 0 {
+		d.Y = r
 		d.VY = math.Abs(d.VY)
-	} else if d.Y+DotRadius > CanvasHeight {
-		d.Y = CanvasHeight - DotRadius
+	} else if d.Y+r > h {
+		d.Y = h - r
 		d.VY = -math.Abs(d.VY)
 	}
 }

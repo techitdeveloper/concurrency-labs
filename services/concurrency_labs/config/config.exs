@@ -7,9 +7,9 @@
 # General application configuration
 import Config
 
-config :concurrency_labs,
-  ecto_repos: [ConcurrencyLabs.Repo],
-  generators: [timestamp_type: :utc_datetime]
+# config :concurrency_labs,
+#   ecto_repos: [ConcurrencyLabs.Repo],
+#   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
 config :concurrency_labs, ConcurrencyLabsWeb.Endpoint,

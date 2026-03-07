@@ -21,20 +21,20 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
-  database_url =
-    System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
+  # database_url =
+  #   System.get_env("DATABASE_URL") ||
+  #     raise """
+  #     environment variable DATABASE_URL is missing.
+  #     For example: ecto://USER:PASS@HOST/DATABASE
+  #     """
 
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  # maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :concurrency_labs, ConcurrencyLabs.Repo,
-    # ssl: true,
-    url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6
+  # config :concurrency_labs, ConcurrencyLabs.Repo,
+  #   # ssl: true,
+  #   url: database_url,
+  #   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+  #   socket_options: maybe_ipv6
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -64,6 +64,18 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base
+
+  # Elixir simulation — dev overrides (all optional, comment out to use defaults)
+  # These mirror the env vars in runtime.exs so dev and prod stay in sync.
+  config :concurrency_labs, :elixir_sim,
+    %{
+      # Uncomment and adjust to tweak during local development:
+      # initial_count: 10,
+      # max_count: 500,
+      # tick_ms: 33,
+      # flush_ms: 50,
+      # storm_death_chance: 0.003
+    }
 
   config :concurrency_labs, :go_ws_url, System.get_env("GO_WS_URL") || "ws://localhost:4001/ws"
 

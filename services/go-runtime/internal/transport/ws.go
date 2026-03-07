@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
+	"github.com/techitdeveloper/concurrency-labs/services/go-runtime/internal/config"
 	"github.com/techitdeveloper/concurrency-labs/services/go-runtime/internal/metrics"
 	"github.com/techitdeveloper/concurrency-labs/services/go-runtime/internal/simulation"
 )
@@ -19,31 +20,48 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 4096,
-	CheckOrigin:     func(r *http.Request) bool { return true },
-}
-
 // Hub is stateless — each WebSocket connection is a fully self-contained session.
 type Hub struct {
-	metricsInterval time.Duration
+	cfg      config.Config
+	upgrader websocket.Upgrader
 }
 
-func NewHub(_ *simulation.Engine, _ *metrics.Collector) *Hub {
-	return &Hub{metricsInterval: 1 * time.Second}
+func NewHub(cfg config.Config) *Hub {
+	h := &Hub{cfg: cfg}
+
+	h.upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 4096,
+		CheckOrigin:     h.checkOrigin,
+	}
+
+	return h
 }
 
-func (h *Hub) Run() {}
+// checkOrigin allows all origins when AllowedOrigins is empty,
+// otherwise restricts to the configured list.
+func (h *Hub) checkOrigin(r *http.Request) bool {
+	if len(h.cfg.AllowedOrigins) == 0 {
+		return true
+	}
+	origin := r.Header.Get("Origin")
+	for _, allowed := range h.cfg.AllowedOrigins {
+		if origin == allowed {
+			return true
+		}
+	}
+	slog.Warn("ws origin rejected", "origin", origin)
+	return false
+}
 
 func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error("ws upgrade failed", "err", err)
 		return
 	}
 
-	s := newSession(conn, h.metricsInterval)
+	s := newSession(conn, h.cfg)
 	slog.Info("session started", "remote", conn.RemoteAddr(), "id", s.id)
 
 	s.run()
@@ -58,22 +76,38 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 var sessionID atomic.Uint64
 
 type session struct {
-	id        uint64
-	conn      *websocket.Conn
-	engine    *simulation.Engine
-	collector *metrics.Collector
-	send      chan []byte
-	done      chan struct{} // closed when the session is shutting down
+	id           uint64
+	conn         *websocket.Conn
+	engine       *simulation.Engine
+	collector    *metrics.Collector
+	send         chan []byte
+	done         chan struct{}
+	initialCount int
 }
 
-func newSession(conn *websocket.Conn, metricsInterval time.Duration) *session {
+func newSession(conn *websocket.Conn, cfg config.Config) *session {
+	engineCfg := simulation.EngineConfig{
+		MaxDots:      cfg.MaxDots,
+		TickInterval: cfg.TickInterval,
+		Dot: simulation.DotConfig{
+			Radius:            cfg.DotRadius,
+			CanvasWidth:       cfg.CanvasWidth,
+			CanvasHeight:      cfg.CanvasHeight,
+			MinSpeed:          cfg.DotMinSpeed,
+			MaxSpeed:          cfg.DotMaxSpeed,
+			CollisionCooldown: cfg.CollisionCooldown,
+			SpawnOffsetMult:   cfg.SpawnOffsetMult,
+		},
+	}
+
 	return &session{
-		id:        sessionID.Add(1),
-		conn:      conn,
-		engine:    simulation.NewEngine(simulation.InitialCount),
-		collector: metrics.NewCollector(metricsInterval),
-		send:      make(chan []byte, 64),
-		done:      make(chan struct{}),
+		id:           sessionID.Add(1),
+		conn:         conn,
+		engine:       simulation.NewEngine(cfg.InitialCount, engineCfg),
+		collector:    metrics.NewCollector(cfg.MetricsInterval),
+		send:         make(chan []byte, 64),
+		done:         make(chan struct{}),
+		initialCount: cfg.InitialCount,
 	}
 }
 
@@ -87,11 +121,9 @@ func (s *session) run() {
 
 	s.readPump() // blocks until connection closes
 
-	// Signal fanOut goroutines to stop before we close send
 	close(s.done)
 
-	// Give fan-out goroutines a moment to exit their select
-	// before we stop the engine (which closes Updates channels)
+	// Give fan-out goroutines a moment to exit before stopping the engine.
 	time.Sleep(10 * time.Millisecond)
 
 	s.engine.Stop()
@@ -100,8 +132,6 @@ func (s *session) run() {
 
 // ---------------------------------------------------------------------------
 // Fan-out goroutines
-// Each selects on both s.done and the update channel so they exit cleanly
-// the moment cleanup begins — no send on closed channel.
 // ---------------------------------------------------------------------------
 
 func (s *session) fanOutSimulation() {
@@ -154,7 +184,6 @@ func (s *session) broadcast(msg ServerMessage) {
 		slog.Error("marshal error", "err", err)
 		return
 	}
-	// Check done before attempting send — avoids racing with cleanup
 	select {
 	case <-s.done:
 		return
@@ -163,7 +192,6 @@ func (s *session) broadcast(msg ServerMessage) {
 	select {
 	case s.send <- data:
 	case <-s.done:
-		// Session is shutting down — discard
 	default:
 		// Client too slow — drop frame
 	}
@@ -209,7 +237,7 @@ func (s *session) handleClientMessage(msg ClientMessage) {
 	case KindSpawnDot:
 		s.engine.SpawnDot()
 	case KindReset:
-		s.engine.Reset(simulation.InitialCount)
+		s.engine.Reset(s.initialCount)
 	default:
 		slog.Warn("unknown client message kind", "kind", msg.Kind, "session", s.id)
 	}

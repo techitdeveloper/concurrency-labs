@@ -5,11 +5,13 @@ import (
 	"time"
 )
 
-const (
-	MaxDots      = 1000
-	TickInterval = 33 * time.Millisecond
-	InitialCount = 50
-)
+// EngineConfig holds simulation-level knobs.
+// Populated from config.Config by the caller (transport layer).
+type EngineConfig struct {
+	MaxDots      int
+	TickInterval time.Duration
+	Dot          DotConfig
+}
 
 // StateSnapshot is what gets broadcast to the WebSocket client every tick.
 // It uses DotState (plain value, no mutex, proper json tags) — never *Dot.
@@ -20,6 +22,7 @@ type StateSnapshot struct {
 
 // Engine runs the simulation for a single session.
 type Engine struct {
+	cfg    EngineConfig
 	mu     sync.Mutex
 	dots   []*Dot
 	nextID float64
@@ -29,8 +32,9 @@ type Engine struct {
 	Updates  chan StateSnapshot
 }
 
-func NewEngine(initialCount int) *Engine {
+func NewEngine(initialCount int, cfg EngineConfig) *Engine {
 	e := &Engine{
+		cfg:      cfg,
 		stopLoop: make(chan struct{}),
 		Updates:  make(chan StateSnapshot, 1),
 	}
@@ -41,7 +45,7 @@ func NewEngine(initialCount int) *Engine {
 }
 
 func (e *Engine) Start() {
-	e.ticker = time.NewTicker(TickInterval)
+	e.ticker = time.NewTicker(e.cfg.TickInterval)
 	e.mu.Lock()
 	for _, d := range e.dots {
 		d.Start()
@@ -65,7 +69,7 @@ func (e *Engine) Stop() {
 func (e *Engine) SpawnDot() {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if len(e.dots) >= MaxDots {
+	if len(e.dots) >= e.cfg.MaxDots {
 		return
 	}
 	d := e.addDot()
@@ -98,7 +102,7 @@ func (e *Engine) DotCount() int {
 }
 
 func (e *Engine) addDot() *Dot {
-	d := NewDot(e.nextID)
+	d := NewDot(e.nextID, e.cfg.Dot)
 	e.nextID++
 	e.dots = append(e.dots, d)
 	return d
@@ -154,7 +158,8 @@ func (e *Engine) tick() {
 	type spawnPoint struct{ x, y float64 }
 	var toSpawn []spawnPoint
 	collided := make(map[float64]bool, len(updated))
-	collisionDistSq := (DotRadius * 2) * (DotRadius * 2)
+	r := e.cfg.Dot.Radius
+	collisionDistSq := (r * 2) * (r * 2)
 
 	for i := 0; i < len(updated); i++ {
 		for j := i + 1; j < len(updated); j++ {
@@ -189,7 +194,7 @@ func (e *Engine) tick() {
 		if u, ok := posMap[d.ID]; ok {
 			d.X, d.Y, d.VX, d.VY = u.X, u.Y, u.VX, u.VY
 			if collided[d.ID] {
-				d.CollisionUntil = now.Add(CollisionCooldown)
+				d.CollisionUntil = now.Add(e.cfg.Dot.CollisionCooldown)
 			}
 		}
 	}
@@ -197,10 +202,10 @@ func (e *Engine) tick() {
 	countBefore := len(e.dots)
 	var newDots []*Dot
 	for i, sp := range toSpawn {
-		if countBefore+i >= MaxDots {
+		if countBefore+i >= e.cfg.MaxDots {
 			break
 		}
-		d := NewDotAt(e.nextID, sp.x, sp.y)
+		d := NewDotAt(e.nextID, sp.x, sp.y, e.cfg.Dot)
 		e.nextID++
 		e.dots = append(e.dots, d)
 		newDots = append(newDots, d)

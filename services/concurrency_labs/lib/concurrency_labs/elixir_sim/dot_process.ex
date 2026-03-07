@@ -6,16 +6,10 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   use GenServer
 
-  alias ConcurrencyLabs.ElixirSim.{Session, SessionSimManager}
+  alias ConcurrencyLabs.ElixirSim.{Config, Session, SessionSimManager}
   alias Phoenix.PubSub
 
   @pubsub ConcurrencyLabs.PubSub
-  @canvas_w 1000.0
-  @canvas_h 600.0
-  @dot_radius 6.0
-  @tick_ms 33
-  @storm_death_chance 0.003
-  @restart_delay_ms 1_200
 
   def start_link(opts) do
     id = Keyword.fetch!(opts, :id)
@@ -43,30 +37,34 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   @impl true
   def init(opts) do
+    cfg = Config.get()
+
     id = Keyword.fetch!(opts, :id)
     session_id = Keyword.fetch!(opts, :session_id)
     restarted = Keyword.get(opts, :restarted, false)
     storm_mode = Keyword.get(opts, :storm_mode, false)
 
-    speed = 1.5 + :rand.uniform_real() * 2.5
+    speed_range = cfg.max_speed - cfg.min_speed
+    speed = cfg.min_speed + :rand.uniform_real() * speed_range
     angle = :rand.uniform_real() * 2 * :math.pi()
 
     state = %{
       id: id,
       session_id: session_id,
-      x: @dot_radius + :rand.uniform_real() * (@canvas_w - 2 * @dot_radius),
-      y: @dot_radius + :rand.uniform_real() * (@canvas_h - 2 * @dot_radius),
+      x: cfg.dot_radius + :rand.uniform_real() * (cfg.canvas_w - 2 * cfg.dot_radius),
+      y: cfg.dot_radius + :rand.uniform_real() * (cfg.canvas_h - 2 * cfg.dot_radius),
       vx: :math.cos(angle) * speed,
       vy: :math.sin(angle) * speed,
-      memory_bytes: 0,
       storm_mode: storm_mode,
-      active: not restarted
+      active: not restarted,
+      # snapshot config into state so moves are consistent for this process's lifetime
+      cfg: cfg
     }
 
     if restarted do
-      Process.send_after(self(), :begin, @restart_delay_ms)
+      Process.send_after(self(), :begin, cfg.restart_delay_ms)
     else
-      schedule_tick()
+      schedule_tick(cfg.tick_ms)
     end
 
     {:ok, state}
@@ -85,7 +83,7 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
   def handle_info(:begin, state) do
     topic = Session.pubsub_topic(state.session_id)
     PubSub.broadcast(@pubsub, topic, {:process_restarted, state.id})
-    schedule_tick()
+    schedule_tick(state.cfg.tick_ms)
     {:noreply, %{state | active: true}}
   end
 
@@ -95,16 +93,14 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   def handle_info(:tick, state) do
     state = move(state)
-    state = %{state | memory_bytes: current_memory()}
-
     SessionSimManager.report_position(state.session_id, state.id, state.x, state.y)
 
-    if state.storm_mode and :rand.uniform_real() < @storm_death_chance do
+    if state.storm_mode and :rand.uniform_real() < state.cfg.storm_death_chance do
       topic = Session.pubsub_topic(state.session_id)
       PubSub.broadcast(@pubsub, topic, {:process_dying, state.id})
       {:stop, :normal, state}
     else
-      schedule_tick()
+      schedule_tick(state.cfg.tick_ms)
       {:noreply, state}
     end
   end
@@ -119,36 +115,29 @@ defmodule ConcurrencyLabs.ElixirSim.DotProcess do
 
   def terminate(_reason, _state), do: :ok
 
-  defp move(state) do
+  defp move(%{cfg: cfg} = state) do
     x = state.x + state.vx
     y = state.y + state.vy
-    {x, vx} = bounce_x(x, state.vx)
-    {y, vy} = bounce_y(y, state.vy)
+    {x, vx} = bounce_x(x, state.vx, cfg)
+    {y, vy} = bounce_y(y, state.vy, cfg)
     %{state | x: x, y: y, vx: vx, vy: vy}
   end
 
-  defp bounce_x(x, vx) do
+  defp bounce_x(x, vx, cfg) do
     cond do
-      x - @dot_radius < 0 -> {@dot_radius, abs(vx)}
-      x + @dot_radius > @canvas_w -> {@canvas_w - @dot_radius, -abs(vx)}
+      x - cfg.dot_radius < 0 -> {cfg.dot_radius, abs(vx)}
+      x + cfg.dot_radius > cfg.canvas_w -> {cfg.canvas_w - cfg.dot_radius, -abs(vx)}
       true -> {x, vx}
     end
   end
 
-  defp bounce_y(y, vy) do
+  defp bounce_y(y, vy, cfg) do
     cond do
-      y - @dot_radius < 0 -> {@dot_radius, abs(vy)}
-      y + @dot_radius > @canvas_h -> {@canvas_h - @dot_radius, -abs(vy)}
+      y - cfg.dot_radius < 0 -> {cfg.dot_radius, abs(vy)}
+      y + cfg.dot_radius > cfg.canvas_h -> {cfg.canvas_h - cfg.dot_radius, -abs(vy)}
       true -> {y, vy}
     end
   end
 
-  defp schedule_tick, do: Process.send_after(self(), :tick, @tick_ms)
-
-  defp current_memory do
-    case Process.info(self(), :memory) do
-      {:memory, bytes} -> bytes
-      nil -> 0
-    end
-  end
+  defp schedule_tick(tick_ms), do: Process.send_after(self(), :tick, tick_ms)
 end

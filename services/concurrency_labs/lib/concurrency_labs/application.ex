@@ -9,7 +9,7 @@ defmodule ConcurrencyLabs.Application do
   def start(_type, _args) do
     children = [
       ConcurrencyLabsWeb.Telemetry,
-      ConcurrencyLabs.Repo,
+      # ConcurrencyLabs.Repo,
       {DNSCluster, query: Application.get_env(:concurrency_labs, :dns_cluster_query) || :ignore},
 
       # Global registry for session supervisors and their named children.
