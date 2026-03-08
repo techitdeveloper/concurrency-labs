@@ -17,7 +17,7 @@
 
   hero_stats: [
     %{value: "500",   label: "max GenServers"},
-    %{value: "1 000", label: "max goroutines"},
+    %{value: "500", label: "max goroutines"},
     %{value: "30fps", label: "live metrics"}
   ],
 

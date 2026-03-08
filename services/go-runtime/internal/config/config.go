@@ -63,7 +63,7 @@ func Load() Config {
 		LogLevel:          parseLogLevel(envString("LOG_LEVEL", "info")),
 		AllowedOrigins:    parseOrigins(envString("ALLOWED_ORIGINS", "")),
 		InitialCount:      envInt("SIM_INITIAL_COUNT", 50),
-		MaxDots:           envInt("SIM_MAX_DOTS", 1000),
+		MaxDots:           envInt("SIM_MAX_DOTS", 500),
 		TickInterval:      envDuration("SIM_TICK_MS", 33),
 		DotRadius:         envFloat("DOT_RADIUS", 6.0),
 		CanvasWidth:       envFloat("CANVAS_WIDTH", 1000.0),
